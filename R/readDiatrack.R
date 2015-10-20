@@ -11,36 +11,31 @@
 ##'
 ##' @description read output file (tracks/trajecotries) from Diatrack.
 
-##' @usage readDiatrack(folder,divide=T)
+##' @usage readDiatrack(folder,merge=F)
 ##' @method # this roxygen directive does not working
 ##' @param folder Full path to Diatrack output file.
-##' @param divide An logical indicate if the output list should be divided by file name. Default divide = TRUE.
+##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
 
 ##' @return
 ##' \itemize{
-##' \item{divide = T} Defult. A list of list of data.frame. First level is a list of file names in Diatrack output folder, second level is a list of data.frames from individual output file.
+##' \item{merge = F} Defult. A list of list of data.frames. First level is a list of file names in Diatrack output folder, second level is a list of data.frames from individual output file.
 
-##' \item{divide = F} A list of data.frames from all Diatrack output files.
+##' \item{merge = T} A list list of data.frames. First level is the folder name. second level is a list of data.frames from all Diatrack output files merged into one
 ##' }
 
 
 ## @section Usage : {
-## readDiatrack(folder,divide=T)
+## readDiatrack(folder,merge=F)
 ## }
 
 ##' @examples
 ##' folder=system.file("extdata",package="smt")
 ##' trackll=readDiatrack(folder)
 ##' str(trackll)
-##' trackl=readDiatrack(folder,divide = F)
-##' str(trackl)
 
 ##' @details
-##' possibility of a reads been random
-##' possibility of peak heights (base coverage) at specific location is esitmated from the average (lambda) coverage of the peak region, 1kb region, 5kb region and 10 kb regions.
-##' This is to account for local fluctuations.
+##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
 
-##system.file("extdata", "refGene.csv", package="SeqData")
 ##' @import ggplot2
 ##' @import dplyr
 ##' @export readDiatrack
@@ -48,34 +43,57 @@
 ###############################################################################
 
 
-readDiatrack=function(folder,divide=T){
+readDiatrack=function(folder,merge= F){
 
-    folder.track.list=list()
+    trackll=list()
+    track.holder=c()
 
     # getting a file list of Diatrack files in a directory
-    file_list <- list.files(path = folder,pattern = ".txt",full.names = T  )
-    file_name = list.files(path=folder, pattern=".txt",full.names=F)
+    file.list <- list.files(path = folder,pattern = ".txt",full.names = T  )
+    file.name = list.files(path=folder, pattern=".txt",full.names=F)
+    folder.name = basename(folder)
 
-    for (i in 1:length(file_list)){
+    if (merge == F){
 
-        track=.readDiatrack(file=file_list[i])
+        # list of list of data.frames,
+        # first level list of file names and
+        # second level list of data.frames
 
-        if (divide){
-            # list of list of data.frames, with first level is list of file
-            # names and second level list of data.frames
-            folder.track.list[[i]]=track
-            names(folder.track.list)[i]=file_name[i]
+        for (i in 1:length(file.list)){
 
-        }else{
-            # concatenate tracks into one list of data.frames
-            folder.track.list=c(folder.track.list,track)
+            track=.readDiatrack(file=file.list[i])
+            trackll[[i]]=track
+            names(trackll)[i]=file.name[i]
         }
+
+    }else{
+
+        # list of list of data.frames,
+        # first level list of folder names and
+        # second level list of data.frames
+
+        for (i in 1:length(file.list)){
+
+            track=.readDiatrack(file=file.list[i])
+            # concatenate tracks into one list of data.frames
+            track.holder=c(track.holder,track)
+
+        }
+        # make the result a list of list with length 1
+        trackll[[1]]=track.holder
+        names(trackll)[[1]]=folder.name
     }
 
-    return(folder.track.list)
+
+    return(trackll)
 }
 
 ##-----------------------------------------------------------------------------
-## TODO:
+## Note:
+
+## if want to keep the names of each data frame come from, use
+## if (merge) do.call(c,trackll)
+
+
 
 
