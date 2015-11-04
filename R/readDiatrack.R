@@ -11,7 +11,7 @@
 ##'
 ##' @description read output file (tracks/trajecotries) from Diatrack.
 
-##' @usage readDiatrack(folder,merge=F)
+##' @usage readDiatrack(folder,merge=F,ab.track=F)
 ##' @method # this roxygen directive does not working
 ##' @param folder Full path to Diatrack output file.
 ##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
@@ -35,15 +35,81 @@
 
 ##' @details
 ##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
+##'
+##' the absolute coordinates trajectory has moved
 
 ##' @import ggplot2
 ##' @import dplyr
 ##' @export readDiatrack
+##'
 
 ###############################################################################
 
+##------------------------------------------------------------------------------
+## .readDiatrack
+## a function to read one diatrack txt file and returns a list of tracks
 
-readDiatrack=function(folder,merge= F){
+.readDiatrack=function(file, interact=F,ab.track=F){
+
+    if (interact==T) {
+        file=file.choose()
+    }
+
+    file.name=basename(file)
+    cat("\nReading Diatrack file: ",file.name,"...\n")
+
+    ## skip the first 'comment line'
+    data=read.table(file=file, header=F, skip=1)
+
+    ## read in frame number line (for future use)
+    frame.num=data[1,]
+
+    ## remove frame number line for computation
+    data=data[-1,]
+
+    ## process the data
+    # store coordinates of track in track.list
+    track.list=list()
+    # store absolute coordinates of track for comparison plots
+    ab.track.list=list()
+
+
+    # select 3 column at a time
+    # can use frame number to do this, but this way makes the program more
+    # robust with little to non decrease in efficiency
+    for (i in 1:(dim(data)[2]/3)) {
+
+        #i=2
+
+        triple=i*3
+        track=select(data,(triple-3+1):triple)
+        colnames(track)=c("x","y","z")
+        track=filter(track,x!=0,y!=0)
+
+        # the [[]] is important, otherwise only x is included
+        track.list[[i]]=track
+
+        ## preprocess to fix coordinates from 0 to max
+        ## absolute value of trajectory movement
+
+        abTrack=data.frame(x=track$x-min(track$x),
+                            y=track$y-min(track$y))
+        ab.track.list[[i]]=abTrack
+
+    }
+
+    if (ab.track==T) return(ab.track.list) else return(track.list)
+
+}
+
+
+
+
+##------------------------------------------------------------------------------
+## Note:the list can be named, this wil change the read.distrack.folder 's naming
+## no need for naming it
+
+readDiatrack=function(folder,merge= F,ab.track=F){
 
     trackll=list()
     track.holder=c()
@@ -61,7 +127,7 @@ readDiatrack=function(folder,merge= F){
 
         for (i in 1:length(file.list)){
 
-            track=.readDiatrack(file=file.list[i])
+            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
             trackll[[i]]=track
             names(trackll)[i]=file.name[i]
         }
