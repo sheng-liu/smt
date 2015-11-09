@@ -1,124 +1,51 @@
 ---
-title: "smt package vignette"
+title: "smt package"
 author: "Sheng Liu"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{smt package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-
-
-
-## msd method
 ```{r,eval=FALSE}
-
-folder=system.file("extdata",package="smt")
-trackll=readDiatrack(folder)
-
-# merged trackll
-trackll.merge=readDiatrack(folder,T)
-
-track=trackll[[1]][[1]]
-
-squareDisp(track)
-
-squareDisp(track,2)
-
-msd.track(track,2)
+## load the library
+library(smt)
 
 
+## specify folder location
+
+# example file with the pacakge
+SWR1=system.file("extdata","SWR1",package="smt")
+HTZ1=system.file("extdata","HTZ1",package="smt")
+
+# local files
+SWR1="/Volumes/wulab/Users/ranjana/Data/2015-11-09/SWR1_Halo"
+
+# files on remoote dm11 server shared folder
+SWR1="/groups/wu/wulab/Users/ranjana/Data/2015-11-09/SWR1_Halo"
 
 
-# length of all tracks in first file
-sapply(trackll[[1]],function(x) dim(x)[1])
+## create master tracklist
+comp=compareFolder(SWR1,HTZ1)
 
 
+## compute MSD, Dinst, CDF, dwellTime
+msd(comp,dt=6,summarize=T,filter=T,plot=T,output=T)
 
-track27=trackll[[1]][[27]]
+Dinst(comp,dt=6,filter=T,plot=T,output=T)
 
-squareDisp(track27,5)
+CDF(comp,dt=6)
 
-msd.track(track27,5)
-
-# not just mean at dt=5
-x=sapply(squareDisp(track27,5),function(x){mean(x$square.disp,na.rm=T)})
-
-mean(x)
-
-y=sapply(squareDisp(track27,5),function(x){(x$square.disp)})
-> mean(y,na.rm=T)
-[1] 0.1011864
-
-do.call(rbind,squareDisp(track27,5))
-
-do.call(rbind,squareDisp(track27,5))$square.disp
+dwellTime(comp,plot=T,output=T)
 
 
-plot(track27$x,track27$y,type="l")
-
+## use ?function for help
+?msd
 
 
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))

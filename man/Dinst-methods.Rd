@@ -5,7 +5,7 @@
 \alias{Dinst}
 \title{Dinst}
 \usage{
-Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,plot=F,output=F)
+Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output=F)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -38,7 +38,7 @@ Caclulate instantaneous diffusion coefficient (Dinst) for
   trajecotries.
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
 Dinst(trackll,plot=T)
 }

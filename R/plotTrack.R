@@ -25,7 +25,7 @@
 ##' }
 
 ##' @examples
-##' folder=system.file("extdata",package="smt")
+##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
 ##' plotTrack(trackll,plot=T)
 

@@ -28,8 +28,8 @@ default merge = FALSE, so the researcher can assay variations between files. Kee
 the absolute coordinates trajectory has moved
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-str(trackll)
+str(trackll,max.level=2)
 }
 

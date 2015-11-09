@@ -11,7 +11,7 @@
 ##'   trajecotries.
 
 ##' @usage
-##'   Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,plot=F,output=F)
+##'   Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output=F)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
 ##' @param resolution ratio of pixel to µM.
@@ -31,7 +31,7 @@
 ##' }
 
 ##' @examples
-##' folder=system.file("extdata",package="smt")
+##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
 ##' Dinst(trackll,plot=T)
 
@@ -76,14 +76,14 @@ Dinst=function(
 
     if (plot==T){
 
-        p=melt(Log.D.inst)
+        p=reshape2::melt(Log.D.inst)
 
 
         colnames(p)=c("Log.D.inst","file.name")
 
         # overlay histogram and density plot without changing count as y axies
         Dinst.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
-            geom_histogram(fill="white",binwidth=0.2,position="dodge")+
+            geom_histogram(fill="white",binwidth=0.3,position="dodge")+
             geom_density(aes(y=0.2*..count..))+
             theme_classic()+
             theme(legend.title=element_blank())

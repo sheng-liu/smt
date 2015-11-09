@@ -22,7 +22,7 @@ Plot emperical cummulative probability (eCDF) for
   trajecotries.
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
 CDF(trackll,dt=8)
 }

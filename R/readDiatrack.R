@@ -29,9 +29,9 @@
 ## }
 
 ##' @examples
-##' folder=system.file("extdata",package="smt")
+##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' str(trackll)
+##' str(trackll,max.level=2)
 
 ##' @details
 ##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.

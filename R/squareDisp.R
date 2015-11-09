@@ -28,7 +28,7 @@
 ## }
 
 ##' @examples
-##' folder=system.file("extdata",package="smt")
+##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=squareDisp(folder)
 ##' str(trackll)
 

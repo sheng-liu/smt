@@ -59,7 +59,7 @@ number of steps used to generate that mean decrease with the maxmum dt
 (dt=N-1) generated from one step.
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=msd(folder)
 msd=msd.trackll(trackll,8)
 str(msd)

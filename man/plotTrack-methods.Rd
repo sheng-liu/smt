@@ -28,7 +28,7 @@ plotTrack(trackll,exposure=10,plot=F,output=F)
 Plot track/trajectory from track list. either randomly or specified.
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
 plotTrack(trackll,plot=T)
 }

@@ -20,9 +20,10 @@
 ##' }
 
 ##' @examples
-##' folder1=system.file("extdata",package="smt")
-##' folder2=system.file("extdata",package="smt")
+##' folder1=system.file("extdata","SWR1",package="smt")
+##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(folder1,folder2)
+##' str(trackll,max.level=1)
 
 ##' @import reshape2
 ##' @export compareFolder

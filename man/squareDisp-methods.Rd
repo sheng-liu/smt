@@ -25,7 +25,7 @@ read output file (tracks/trajecotries) from Diatrack.
 default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
 }
 \examples{
-folder=system.file("extdata",package="smt")
+folder=system.file("extdata","SWR1",package="smt")
 trackll=squareDisp(folder)
 str(trackll)
 }
