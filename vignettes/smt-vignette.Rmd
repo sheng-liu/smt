@@ -2,7 +2,7 @@
 title: "smt package"
 author: "Sheng Liu"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{smt package}
   %\VignetteEngine{knitr::rmarkdown}
