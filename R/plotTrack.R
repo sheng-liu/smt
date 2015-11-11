@@ -10,29 +10,31 @@
 ##' @docType methods
 ##' @description Plot track/trajectory from track list. either randomly or specified.
 
-##' @usage plotTrack(trackll,exposure=10,plot=F,output=F)
-##' @param trackll Track list output from readDiatrack().
-##' @param exposure Exposure time, default = 10ms.
-##' @param plot An Logical indicate if plot should be generated. If plot = TRUE, the plot data will also be output.
-##' @param output An Logical indicate if output should be generated. 1) dwell time of tracks in the track list output to csv file. Each item in the list will have an individual csv file. 2) Plot PDF and plot data will be saved.
+##' @usage plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
+##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
+##' @param resolution ratio of pixel to µM.
+##' @param frame.min minimum frame number for plotting.
+##' @param frame.max max frame number for plotting.
+##' @param frame.start the first frame to plot. Default 1.
+##' @param frame.end last frame to plot. Default 500.
 
 
 ##' @return
 ##' \itemize{
-##' \item{dwell time list} A list of dwell time for every trajectory, separated by file names of the trajectory file in Diatrack file folder. If combined dewell time is intended, use readDiatrack(folder, merge=T) to generate a single length list, then apply this function.
-##' \item{PDF} dwell time frequency plot in PDF format, when plot = TRUE.
-##' \item{csv} dwell time output in csv format, when output = TRUE.
+
+##' \item{PDF} One PDF file with all the frames satisfy the creteria. If trackll has multiple items, it ouptus mutiple PDF files each corresponding to one item.
+
 ##' }
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
-##' trackll=readDiatrack(folder)
-##' plotTrack(trackll,plot=T)
+##' trackll=readDiatrack(folder,ab.track=TRUE)
+##' plotTrack(trackll)
 
-##' @import reshape2
+## @import reshape2
 ##' @export plotTrack
-##' @export .plotTrack
-##'@import animation
+## @export .plotTrack
+## @import animation
 ## FUTURE: maybe plot on dt
 
 ## TODO: make the function input as c(min,max)
@@ -76,9 +78,9 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
 
         .plotTrack(ab.trackll[[i]],file.name[i],resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
 
+        cat("\nOutput track plot...\n")
+
     }
-
-
 
         # lapply(ab.trackll,function(ab.trackl,file.name){.plotTrack(ab.trackl,file.name,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)})
     # lapply can only take one input

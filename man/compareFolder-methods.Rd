@@ -16,7 +16,7 @@ compareFolder(folder1,folder2,folder3=NULL,folder4=NULL,folder5=NULL)
 }
 }
 \description{
-compare (2 ≤ n ≤ 5) folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
+compare (2 ~ 5) folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
 }
 \examples{
 folder1=system.file("extdata","SWR1",package="smt")

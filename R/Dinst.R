@@ -17,7 +17,7 @@
 ##' @param resolution ratio of pixel to µM.
 ##' @param lag.start time lag used as start of dt for compute Dinst.
 ##' @param lag.end Time lag used as end of dt for compute Dinst.
-##' @param filter An logical indicate if frames less than specified time interval (≤ dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
+##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
 ##' @param plot An Logical indicate if plot should be generated. See Values for
 ##'   detail.
 ##' @param output An Logical indicate if output should be generated. See Values
@@ -33,7 +33,7 @@
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' Dinst(trackll,plot=T)
+##' Dinst(trackll,plot=TRUE)
 
 
 ##' @export Dinst

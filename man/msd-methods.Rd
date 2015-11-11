@@ -18,7 +18,7 @@ msd(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
 \item{summarize}{An logical indicate if MSD should be calculated on
   individual trajectories (Default) or summarized on all trajectories.}
 
-\item{filter}{An logical indicate if frames less than specified time interval (≤ dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
+\item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > = dt).}
 
 \item{plot}{An logical indicate if plot should be generated. See Values for
 detail.}
@@ -54,14 +54,14 @@ sub-trajectory/sub-tracks, mean of dt-wise sub-trajectories/ step-wise sub
 tracks average subtracks into one number at each dt.
 
 the dt number of su-btracks each contains N:N-dt steps. Because minimum step
-is 1 (N-dt ≥ 1), so the maxium dt is N-1 (dt≤ N-1). As dt increase, the
+is 1 (N-dt > = 1), so the maxium dt is N-1 (dt < = N-1). As dt increase, the
 number of steps used to generate that mean decrease with the maxmum dt
 (dt=N-1) generated from one step.
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
-trackll=msd(folder)
-msd=msd.trackll(trackll,8)
+trackll=readDiatrack(folder)
+msd=msd(trackll,dt=6,summarize=TRUE,filter=TRUE,plot=TRUE)
 str(msd)
 }
 

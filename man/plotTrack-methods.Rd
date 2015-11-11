@@ -6,22 +6,24 @@
 \alias{plotTrack}
 \title{plotTrack}
 \usage{
-plotTrack(trackll,exposure=10,plot=F,output=F)
+plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
 }
 \arguments{
-\item{trackll}{Track list output from readDiatrack().}
+\item{resolution}{ratio of pixel to µM.}
 
-\item{exposure}{Exposure time, default = 10ms.}
+\item{frame.min}{minimum frame number for plotting.}
 
-\item{plot}{An Logical indicate if plot should be generated. If plot = TRUE, the plot data will also be output.}
+\item{frame.max}{max frame number for plotting.}
 
-\item{output}{An Logical indicate if output should be generated. 1) dwell time of tracks in the track list output to csv file. Each item in the list will have an individual csv file. 2) Plot PDF and plot data will be saved.}
+\item{frame.start}{the first frame to plot. Default 1.}
+
+\item{frame.end}{last frame to plot. Default 500.}
+
+\item{ab.trackll}{absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).}
 }
 \value{
 \itemize{
-\item{dwell time list} A list of dwell time for every trajectory, separated by file names of the trajectory file in Diatrack file folder. If combined dewell time is intended, use readDiatrack(folder, merge=T) to generate a single length list, then apply this function.
-\item{PDF} dwell time frequency plot in PDF format, when plot = TRUE.
-\item{csv} dwell time output in csv format, when output = TRUE.
+\item{PDF} One PDF file with all the frames satisfy the creteria. If trackll has multiple items, it ouptus mutiple PDF files each corresponding to one item.
 }
 }
 \description{
@@ -29,7 +31,7 @@ Plot track/trajectory from track list. either randomly or specified.
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
-trackll=readDiatrack(folder)
-plotTrack(trackll,plot=T)
+trackll=readDiatrack(folder,ab.track=TRUE)
+plotTrack(trackll)
 }
 

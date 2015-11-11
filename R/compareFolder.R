@@ -8,7 +8,7 @@
 ##' @title compareFolder
 ##' @rdname compareFolder-methods
 ##' @docType methods
-##' @description compare (2 ≤ n ≤ 5) folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
+##' @description compare (2 ~ 5) folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
 
 ##' @usage compareFolder(folder1,folder2,folder3=NULL,folder4=NULL,folder5=NULL)
 ##' @param folder the path to the folder location.

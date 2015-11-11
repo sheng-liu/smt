@@ -18,7 +18,7 @@ Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output
 
 \item{lag.end}{Time lag used as end of dt for compute Dinst.}
 
-\item{filter}{An logical indicate if frames less than specified time interval (≤ dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
+\item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
 
 \item{plot}{An Logical indicate if plot should be generated. See Values for
 detail.}
@@ -40,6 +40,6 @@ Caclulate instantaneous diffusion coefficient (Dinst) for
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-Dinst(trackll,plot=T)
+Dinst(trackll,plot=TRUE)
 }
 

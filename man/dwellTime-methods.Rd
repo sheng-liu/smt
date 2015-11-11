@@ -29,6 +29,6 @@ Caclulate dwell time (/residence time) for trajecotries.
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-dwellTime(trackll,plot=T)
+dwellTime(trackll,plot=TRUE)
 }
 

@@ -18,7 +18,7 @@
 ##' @param summarize An logical indicate if MSD should be calculated on
 ##'   individual trajectories (Default) or summarized on all trajectories.
 ##'
-##' @param filter An logical indicate if frames less than specified time interval (≤ dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
+##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > = dt).
 ##'
 ##' @param plot An logical indicate if plot should be generated. See Values for
 ##'   detail.
@@ -45,8 +45,8 @@
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
-##' trackll=msd(folder)
-##' msd=msd.trackll(trackll,8)
+##' trackll=readDiatrack(folder)
+##' msd=msd(trackll,dt=6,summarize=TRUE,filter=TRUE,plot=TRUE)
 ##' str(msd)
 
 ##' @details
@@ -56,19 +56,21 @@
 ##' tracks average subtracks into one number at each dt.
 ##'
 ##' the dt number of su-btracks each contains N:N-dt steps. Because minimum step
-##' is 1 (N-dt ≥ 1), so the maxium dt is N-1 (dt≤ N-1). As dt increase, the
+##' is 1 (N-dt > = 1), so the maxium dt is N-1 (dt < = N-1). As dt increase, the
 ##' number of steps used to generate that mean decrease with the maxmum dt
 ##' (dt=N-1) generated from one step.
 
 ##' @import ggplot2
 ##' @import dplyr
+## @import dplyr::select
 ## @import reshape2::melt
 ##' @import reshape2
 ##' @export msd
-##' @export msd.track
+## @export msd.track
 
 ## TODO:melt implementation
 ###############################################################################
+
 
 ##------------------------------------------------------------------------------
 ## msd.track
@@ -126,8 +128,8 @@ msd.track=function(track,dt=1,resolution=0.107){
 # average subtracks into one number at each dt
 
 # the dt number of su-btracks each contains N:N-dt steps
-# (N-dt ≥ 1, so dt≤ N-1) because minimum step is 1 (N-dt ≥ 1),
-# so the maxium dt is N-1 (dt≤ N-1)
+# (N-dt > = 1, so dt < = N-1) because minimum step is 1 (N-dt > = 1),
+# so the maxium dt is N-1 (dt < = N-1)
 # as dt increase, the number of steps used to generate that mean decrease
 # with the maxmum dt (dt=N-1) generated from one step
 

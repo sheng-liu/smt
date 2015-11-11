@@ -27,7 +27,7 @@
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' dwellTime(trackll,plot=T)
+##' dwellTime(trackll,plot=TRUE)
 
 ##' @import reshape2
 ##' @export dwellTime
