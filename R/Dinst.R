@@ -11,7 +11,7 @@
 ##'   trajecotries.
 
 ##' @usage
-##'   Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output=F)
+##'   Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,freq=F,binwidth=0.5,output=F)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
 ##' @param resolution ratio of pixel to µM.
@@ -20,6 +20,8 @@
 ##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
 ##' @param plot An Logical indicate if plot should be generated. See Values for
 ##'   detail.
+##' @param freq An Logical inidcate if "frequency" should be used rather than "count".
+##' @param binwidth binwidth used for histogram, default 0.5.
 ##' @param output An Logical indicate if output should be generated. See Values
 ##'   for detail.
 
@@ -55,7 +57,6 @@ Dinst=function(
 
     # x=2:5 ; x=1:4# coefficient is the same
     D.inst=list()
-    r.square=c()
     for (i in 1:length(trackll)){
         D.inst[[i]]=apply(MSD[[i]][lag.start:lag.end,],MARGIN=2,function(y){
             fit=lm(y~x)
@@ -66,26 +67,18 @@ Dinst=function(
             return(sc)
 
         })
-        # r.squared > 0.8 as quality control
-        #r.square[i]=summary(fit)$r.squared
     }
-
-
-
-
     names(D.inst)=names(MSD)
 
     # to varify the fit
     # fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
 
     # r.squared >= 0.8 as quality control
-
     slope=lapply(D.inst,function(x){x[rownames(x)=="slope"]})
     corr=lapply(D.inst,function(x){x[rownames(x)=="corr"]})
 
     corr.filter=lapply(corr,function(x){x>=0.8})
     D.inst=mapply("[",slope,corr.filter)
-
 
     #Log.D.inst=suppressWarnings(lapply(D.inst,log))
     Log.D.inst=lapply(D.inst,log)
@@ -95,15 +88,8 @@ Dinst=function(
     #    x[!is.nan(x)]
     #})
 
-
-    # plot frequency so it is easier to compare groups
-
-
     if (plot==T){
-
         p=reshape2::melt(Log.D.inst)
-
-
         colnames(p)=c("Log.D.inst","file.name")
 
         # overlay histogram and density plot without changing count as y axies
@@ -115,8 +101,9 @@ Dinst=function(
             theme_classic()+
             theme(legend.title=element_blank())
 
-
+        # plot frequency so it is easier to compare groups
         if (freq==T){
+
 
             Dinst.plot=ggplot(p,
                               aes(x=Log.D.inst,group=file.name,col=file.name,fill=file.name))+
@@ -126,8 +113,6 @@ Dinst=function(
                 theme(legend.title=element_blank())
 
         }
-
-
         plot(Dinst.plot)
 
     }
@@ -144,8 +129,6 @@ Dinst=function(
     }
 
     return(D.inst)
-
-
 }
 
 

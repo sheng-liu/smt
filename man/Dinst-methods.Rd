@@ -5,7 +5,7 @@
 \alias{Dinst}
 \title{Dinst}
 \usage{
-Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output=F)
+Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,freq=F,binwidth=0.5,output=F)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -22,6 +22,10 @@ Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,output
 
 \item{plot}{An Logical indicate if plot should be generated. See Values for
 detail.}
+
+\item{freq}{An Logical inidcate if "frequency" should be used rather than "count".}
+
+\item{binwidth}{binwidth used for histogram, default 0.5.}
 
 \item{output}{An Logical indicate if output should be generated. See Values
 for detail.}
