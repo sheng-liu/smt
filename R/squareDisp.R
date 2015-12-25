@@ -27,6 +27,7 @@ squareDisp=function(track,dt=1,resolution=0.107){
         track.dt[[i]]=track[seq(i,dim(track)[1],dt),]
 
         # compute square.disp in dt tracks, stored in original data.frame
+        # note this lag is a dplyr::lag, not base::lag, which only works for time series
         x.disp=(track.dt[[i]]$x-lag(track.dt[[i]]$x,n=1))*resolution
         y.disp=(track.dt[[i]]$y-lag(track.dt[[i]]$y,n=1))*resolution
         square.disp=x.disp^2+y.disp^2

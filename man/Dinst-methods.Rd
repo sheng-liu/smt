@@ -5,7 +5,7 @@
 \alias{Dinst}
 \title{Dinst}
 \usage{
-Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,freq=F,binwidth=0.5,output=F)
+Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,plot=c("none","histogram","density","variance"),output=F)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -20,12 +20,9 @@ Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,plot=F,freq=F
 
 \item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
 
-\item{plot}{An Logical indicate if plot should be generated. See Values for
-detail.}
-
-\item{freq}{An Logical inidcate if "frequency" should be used rather than "count".}
-
 \item{binwidth}{binwidth used for histogram, default 0.5.}
+
+\item{plot}{A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidt; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dinst is applied and filter is on.}
 
 \item{output}{An Logical indicate if output should be generated. See Values
 for detail.}
@@ -42,8 +39,15 @@ Caclulate instantaneous diffusion coefficient (Dinst) for
   trajecotries.
 }
 \examples{
+# compare files
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-Dinst(trackll,plot=TRUE)
+Dinst(trackll,plot="density")
+
+# compare folders
+folder1=system.file("extdata","SWR1",package="smt")
+folder2=system.file("extdata","HTZ1",package="smt")
+trackll=compareFolder(folder1,folder2)
+Dinst(trackll,plot="variance")
 }
 
