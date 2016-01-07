@@ -312,22 +312,59 @@ plotVariance=function(Log.D.inst){
     data=cbind(MEAN,SD)
 
     # plotting
+#     scatter=ggplot(data,aes(x=mean,y=sd,col=folder))+
+#         geom_point(alpha=0.8)+
+#         theme_classic()+
+#         theme(legend.title=element_blank())
+#
+#     mean.density=ggplot(data,aes(x=mean,col=folder))+
+#         geom_density()+
+#         theme_classic()+
+#         theme(legend.title=element_blank())
+#
+#     sd.density=ggplot(data,aes(x=sd,col=folder))+
+#         geom_density()+
+#         theme_classic()+
+#         theme(legend.title=element_blank())
+#
+#     multiplot(scatter,mean.density,sd.density, cols=1)
+
+    # another implementation using gridExtra::grid.arrange
     scatter=ggplot(data,aes(x=mean,y=sd,col=folder))+
-        geom_point(alpha=0.8)+
+        geom_point(alpha=1,shape=21)+
         theme_classic()+
-        theme(legend.title=element_blank())
+        theme(legend.title=element_blank())+
+        theme(legend.position=c(1,1),legend.justification=c(1,1))
 
-    mean.density=ggplot(data,aes(x=mean,col=folder))+
-        geom_density()+
-        theme_classic()+
-        theme(legend.title=element_blank())
+    mean.density=ggplot(data,aes(x=mean,fill=folder,col=folder))+
+        geom_density(alpha=0.5)+
+        theme(legend.title=element_blank())+
+        theme(legend.position = "none")
 
-    sd.density=ggplot(data,aes(x=sd,col=folder))+
-        geom_density()+
-        theme_classic()+
-        theme(legend.title=element_blank())
+    sd.density=ggplot(data,aes(x=sd,fill=folder,col=folder))+
+        coord_flip()+
+        geom_density(alpha=0.5)+
+        theme(legend.title=element_blank())+
+        theme(legend.position = "none")
 
-    multiplot(scatter,mean.density,sd.density, cols=1)
+    empty <- ggplot()+geom_point(aes(1,1), colour="white")+
+        theme(
+            plot.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.border = element_blank(),
+            panel.background = element_blank(),
+            axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks = element_blank()
+        )
+
+
+    grid.arrange(mean.density, empty, scatter, sd.density, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+
+
 
     # this would have worked if mapply takes na.rm=T
     # mapply(mean,Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]],na.rm=T)
@@ -396,4 +433,6 @@ plotDensity=function(Log.D.inst,binwidth=0.5){
     plot(Dinst.plot)
 }
 
-
+# ggplot(p,
+#        aes(x=Log.D.inst))+
+#     geom_density()
