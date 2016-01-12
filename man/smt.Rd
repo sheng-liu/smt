@@ -19,7 +19,7 @@ smt provide a simple analysis on single molecule tracking data using parameters 
 
 - mean square displacement as a function of time (msd),
 
-- instantaneous diffusion coefficient (Dinst) and
+- diffusion coefficient (Dcoef) and
 
 - emperical cumulative distribution function (eCDF) of MSD over time.
 }

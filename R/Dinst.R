@@ -1,25 +1,25 @@
-## Dinst-methods
+## Dcoef-methods
 ##
 ##
 ###############################################################################
-##' @name Dinst
-##' @aliases Dinst
-##' @title Dinst
-##' @rdname Dinst-methods
+##' @name Dcoef
+##' @aliases Dcoef
+##' @title Dcoef
+##' @rdname Dcoef-methods
 ##' @docType methods
-##' @description Caclulate instantaneous diffusion coefficient (Dinst) for
+##' @description Caclulate instantaneous diffusion coefficient (Dcoef) for
 ##'   trajecotries.
 ##'
 ##' @usage
-##' Dinst(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,plot=c("none","histogram","density","variance"),output=F)
+##' Dcoef(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
 ##' @param resolution ratio of pixel to µM.
-##' @param lag.start time lag used as start of dt for compute Dinst.
-##' @param lag.end Time lag used as end of dt for compute Dinst.
+##' @param lag.start time lag used as start of dt for compute Dcoef.
+##' @param lag.end Time lag used as end of dt for compute Dcoef.
 ##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
 ##'
-##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidt; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dinst is applied and filter is on.
+##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidt; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.
 ##'
 ##' @param binwidth binwidth used for histogram, default 0.5.
 ##' @param output An Logical indicate if output should be generated. See Values
@@ -27,60 +27,120 @@
 
 ##' @return
 ##' \itemize{
-##' \item{Dinst} A list of Dinst for each file in trackll.
-##' \item{PDF} Log.Dinst histogram fitted with density curve, when plot = TRUE.
-##' \item{csv} Dinst output in csv format, when output = TRUE.
+##' \item{Dcoef} A list of Dcoef for each file in trackll.
+##' \item{PDF} Log.Dcoef histogram fitted with density curve, when plot = TRUE.
+##' \item{csv} Dcoef output in csv format, when output = TRUE.
 ##' }
 
 ##' @examples
 ##' # compare files
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' Dinst(trackll,plot="density")
+##' Dcoef(trackll,plot="density")
 ##'
 ##' # compare folders
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(folder1,folder2)
-##' Dinst(trackll,plot="variance")
+##' Dcoef(trackll,plot="variance")
 
-##' @export Dinst
+##' @export Dcoef
 ###############################################################################
 
-# Dinst
-# Diffusion coefficient instentaneoius
+# Dcoef
+# Diffusion coefficient
 
-Dinst=function(
-    trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,plot=c("none","histogram","density","variance"),output=F){
 
-    if (plot=="variance"){
-        ## currently set rollingwindow only for variance plot
-        cat("\nvariance = TRUE, applying rolling window, filter swtiched on\n")
-        rolling.window=T
-        filter=T
-    }else{
-            rolling.window=F
-        }
 
-        MSD=msd(trackll,dt=dt,resolution=resolution,filter=filter,summarize=F)
+Dcoef=function(
+    trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F){
+
+
+    # for all Dcoef, the MSD is always calculted for individual, not summarized version
+    summarize=F
+    # therefore filter needs to be on as well, as there is no summarization
+    filter = T
+
+    # calculate MSD
+    MSD=msd(trackll,dt=dt,resolution=resolution,filter=filter,summarize=F)
+
+
+    ##------------------------------------------------------------------------------
+    ## set corresponding switches
+
+    method=match.arg(method)
+
+    #[1] "static"         "rolling.window" "percentage"
+
+    print(method)
+    # [1] "static"
+
+   switch(method,
+          rolling.window={
+              cat("\napplying rolling window,
+                  filter swtiched on\n")
+              static=F
+              window.size=4
+
+              # calculate Dcoef using rolling window
+              D.inst=Dcoef.roll(MSD,dt=dt,window.size=window.size)
+
+          },
+          static={
+              cat("\napplying static,
+                  lag.start=2, lag.end=5\n")
+              static=T
+              lag.start=2
+              lag.end=5
+
+              # calculate Dcoef using rolling window
+              D.inst=Dcoef.static(MSD)
+
+
+          },
+          percentage={
+              cat("\napplying percentage,")
+              static=T
+
+              D.inst=Dcoef.perc(trackll,weighted=F)
+
+          })
+
+#     if (plot=="variance"){
+#         ## currently set rollingwindow only for variance plot
+#         cat("\nvariance = TRUE, applying rolling window, filter swtiched on\n")
+#         rolling.window=T
+#         filter=T
+#     }else{
+#             rolling.window=F
+#         }
+
+    # calculate MSD based on swtiches
+    # MSD=msd(trackll,dt=dt,resolution=resolution,filter=filter,summarize=F)
+    # MSD may need a track specific function, or switch
+    ## can be the filter function that needs to be implemented
 
 
 ##------------------------------------------------------------------------------
-## Dinst, rolling window
+## call corresponding functions
 
-    if (rolling.window==T){
+#     if (rolling.window==T){
+#
+#         D.inst=Dcoef.roll(MSD,dt=dt)
+#         D.inst.subset=rsquare.filter(D.inst,static=F)
+#         Log.D.inst=Dcoef.log(D.inst.subset,static=F)
+#
+#     }else{
+#
+#         D.inst=Dcoef.static(MSD)
+#         D.inst.subset=rsquare.filter(D.inst,static=T)
+#         Log.D.inst=Dcoef.log(D.inst.subset,static=T)
+#
+#     }
 
-        D.inst=Dinst.roll(MSD,dt=dt)
-        D.inst.subset=rsquare.filter(D.inst,static=F)
-        Log.D.inst=Dinst.log(D.inst.subset,static=F)
+    D.inst.subset=rsquare.filter(D.inst,static=static)
+    Log.D.inst=Dcoef.log(D.inst.subset,static=static)
 
-    }else{
-
-        D.inst=Dinst.static(MSD)
-        D.inst.subset=rsquare.filter(D.inst,static=T)
-        Log.D.inst=Dinst.log(D.inst.subset,static=T)
-
-    }
 
 ##------------------------------------------------------------------------------
 ## plot
@@ -107,7 +167,7 @@ Dinst=function(
 
         # output csv
         for (i in 1:length(trackll)){
-            fileName=paste("Dinst-",.timeStamp(names(MSD)[i]),".csv",sep="")
+            fileName=paste("Dcoef-",.timeStamp(names(MSD)[i]),".csv",sep="")
             write.csv(file=fileName,D.inst[[i]])
         }
 

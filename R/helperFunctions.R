@@ -100,9 +100,9 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 
 ##------------------------------------------------------------------------------
-## .Dinst.roll
+## .Dcoef.roll
 
-Dinst.roll=function(MSD,dt,window.size=4){
+Dcoef.roll=function(MSD,dt,window.size=4){
 
     D.inst=list()
     D.inst.roll=list()
@@ -232,9 +232,9 @@ rsquare.filter=function(D.inst,static=TRUE){
 }
 
 ##------------------------------------------------------------------------------
-## Dinst.log
+## Dcoef.log
 
-Dinst.log=function(D.inst.subset,static=T){
+Dcoef.log=function(D.inst.subset,static=T){
     if (static){
 
         #Log.D.inst=suppressWarnings(lapply(D.inst,log))
@@ -260,8 +260,8 @@ Dinst.log=function(D.inst.subset,static=T){
 }
 
 ##------------------------------------------------------------------------------
-## Dinst.static
-Dinst.static=function(MSD,lag.start=2,lag.end=5){
+## Dcoef.static
+Dcoef.static=function(MSD,lag.start=2,lag.end=5){
 
 
     #  linear fitting of the MSD curves between time dt 2 and 5
@@ -406,14 +406,14 @@ plotHistogram=function(Log.D.inst,binwidth=0.5){
     colnames(p)=c("Log.D.inst","file.name")
 
     # overlay histogram and density plot without changing count as y axies
-    Dinst.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+    Dcoef.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
         #geom_histogram(aes(y = ..count..,fill=file.name),binwidth=0.2,position="identity")+
         geom_histogram(aes(y = ..count..,fill=file.name),binwidth=binwidth,position="dodge")+
 
         geom_density(aes(y=0.2*..count..,fill=file.name),alpha=0.2)+
         theme_classic()+
         theme(legend.title=element_blank())
-    plot(Dinst.plot)
+    plot(Dcoef.plot)
 
 }
 ##------------------------------------------------------------------------------
@@ -423,16 +423,115 @@ plotDensity=function(Log.D.inst,binwidth=0.5){
     colnames(p)=c("Log.D.inst","file.name")
 
 
-    Dinst.plot=ggplot(p,
+    Dcoef.plot=ggplot(p,
                       aes(x=Log.D.inst,group=file.name,col=file.name,fill=file.name))+
         geom_histogram(aes(y = ..density..,fill=file.name),binwidth=binwidth,position="dodge")+
         geom_density(alpha = 0.2)+
         theme_classic()+
         theme(legend.title=element_blank())
 
-    plot(Dinst.plot)
+    plot(Dcoef.plot)
 }
 
 # ggplot(p,
 #        aes(x=Log.D.inst))+
 #     geom_density()
+
+
+
+##------------------------------------------------------------------------------
+## percentage
+## To determine the diffusion constant from a trajectory, a line was fit to MSD(n􏲄t) with n running from 1 to the largest integer less than or equal to L/4 (Saxton, 1997).
+
+Dcoef.perc=function(trackll,percentage=0.25,weighted=F){
+
+    # determine the length of each trajectory N then compute first 25% N's msd
+    #     for (i in 1: length(trackll)){
+    #         N=lapply(trackll[[i]],function(x){dim(x)[1]})
+    #     }
+
+    # would be nice to have a subsetting method for a smt class, there are so many levels of subsetting, each time it needs a lapply
+
+    # for smaller tracks (<8) this maybe unecessary
+    # can chagne this later version
+    # track.len=lapply(N, function(x) {round(x/4,digits=0)})
+
+
+    ## calculate MSD for each track uses different dt.size = track.len/4
+
+    msd.list=trackll  # copy trackll's structure
+
+    # i folder name level
+    for (i in 1:length(trackll)){
+
+        # j data.frame level
+        for (j in 1:length(trackll[[i]])){
+            print(j)
+
+            track.len=dim(trackll[[i]][[j]])[1]
+
+            msd.list[[i]][[j]]=msd.track(track=trackll[[i]][[j]],
+                                         dt=round(percentage*track.len),
+                                         resolution=resolution)
+
+        }
+    }
+
+    # use first 25% of positions for fitting
+    # then divide by 2 and 2 (2D)
+    # still not sure why it is for in msd analsyzer, thought it was 4 step
+
+    D.coef=msd.list # copy msd.list structure
+    # dstep=4
+
+    for (i in 1:length(msd.list)){
+
+
+        for (j in 1:length(msd.list[[i]])){
+            y=msd.list[[i]][[j]]
+
+            len=length(msd.list[[i]][[j]])
+
+            x=seq(from=0.05,to=len*0.05,by=0.05)
+
+            if (weighted==T){
+                w=1:len
+                fit=lm(y~x,weights =w )
+            }else{
+                fit=lm(y~x)
+            }
+
+            # MSDslope=coefficients(fit)[2]/dstep
+            MSDslope=coefficients(fit)[2]
+            MSDcorr=summary(fit)$r.squared
+            sc=c(MSDslope,MSDcorr)
+            names(sc)=c("slope","corr")
+            D.coef[[i]][[j]]=sc
+        }
+
+    }
+
+    # names(D.inst)=names(MSD)
+
+
+    #     Weights are set to be the number of points (length of trajectory?) averaged to generate the mean square displacement value at the given delay (in this case, it is the 25%). Thus, we give more weight to MSD curves with greater certainty (larger number of elements averaged).
+
+    # weights are essentially the lenght of the msd list
+
+    #     % - M the weighted mean of MSD for each delay
+    #     % - STD the weighted standard deviation
+    #     % - N the number of degrees of freedom in the weighted mean
+    #     % (see http://en.wikipedia.org/wiki/Weighted_mean)
+
+    # plot those coef and get the mean of all
+
+    # The only requirement for weights is that the vector supplied must be the same length as the data.
+
+    # simplest weights  index of the msd (as it shows how many points is used to generate the msd, steps)
+
+    # more sophistacted  1/theta^2 (variance)
+    return(D.coef)
+
+}
+
+

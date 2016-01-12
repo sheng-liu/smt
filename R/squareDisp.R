@@ -28,8 +28,17 @@ squareDisp=function(track,dt=1,resolution=0.107){
 
         # compute square.disp in dt tracks, stored in original data.frame
         # note this lag is a dplyr::lag, not base::lag, which only works for time series
-        x.disp=(track.dt[[i]]$x-lag(track.dt[[i]]$x,n=1))*resolution
-        y.disp=(track.dt[[i]]$y-lag(track.dt[[i]]$y,n=1))*resolution
+
+        x.disp=(track.dt[[i]]$x-dplyr::lag(track.dt[[i]]$x,n=1))*resolution
+        y.disp=(track.dt[[i]]$y-dplyr::lag(track.dt[[i]]$y,n=1))*resolution
+
+
+        # view displacement as displacement to initial position, how far it has moved, rather than to previous position
+
+#          x.disp=(track.dt[[i]]$x-track.dt[[i]]$x[1])*resolution
+#          y.disp=(track.dt[[i]]$y-track.dt[[i]]$y[1])*resolution
+
+
         square.disp=x.disp^2+y.disp^2
         index=rownames(track.dt[[i]])
         track.dt[[i]]=mutate(track.dt[[i]],index,square.disp)
@@ -39,6 +48,17 @@ squareDisp=function(track,dt=1,resolution=0.107){
     return(track.dt)
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 ##------------------------------------------------------------------------------
 ## TODO: calculate displacement variance

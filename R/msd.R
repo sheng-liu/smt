@@ -105,11 +105,20 @@ msd.track=function(track,dt=1,resolution=0.107){
         # caculate msd for track at specified dt
         track.sqd=squareDisp(track,dt=i,resolution=resolution)
 
-        # pull all the sd at this dt together
+        # pull all the squared displacement at this dt together
         square.disp=do.call(rbind,track.sqd)$square.disp
         square.disp=square.disp[!is.na(square.disp)]
         # get the genuine mean
         msd=mean(square.disp)
+
+
+        # get the sum of all subtrajectories then average them
+#         sum.square.disp=lapply(track.sqd,function(trk){
+#           # subsetting list with [["colnames]]
+#           sum(trk[["square.disp"]],na.rm=T)})
+#         # get the msd
+#         msd=mean(do.call(rbind,sum.square.disp))
+
 
         # for any N length trajectory, one can have N-1 dt steps
         # the resulting msd at each dt is generated from N:N-1 individual steps
