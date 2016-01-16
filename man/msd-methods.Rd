@@ -6,7 +6,7 @@
 \alias{msd.track}
 \title{msd}
 \usage{
-msd(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
+msd(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,output=F)
 }
 \arguments{
 \item{dt}{Time intervals.}
@@ -18,7 +18,7 @@ msd(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
 \item{summarize}{An logical indicate if MSD should be calculated on
   individual trajectories (Default) or summarized on all trajectories.}
 
-\item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > = dt).}
+\item{filter}{a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.}
 
 \item{plot}{An logical indicate if plot should be generated. See Values for
 detail.}
@@ -57,11 +57,16 @@ the dt number of su-btracks each contains N:N-dt steps. Because minimum step
 is 1 (N-dt > = 1), so the maxium dt is N-1 (dt < = N-1). As dt increase, the
 number of steps used to generate that mean decrease with the maxmum dt
 (dt=N-1) generated from one step.
+
+if one wants to focus on a group of trajectory's evolution, he can simply filter on a number that is bigger than the dt he wanted to plot MSD.
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-msd=msd(trackll,dt=6,summarize=TRUE,filter=TRUE,plot=TRUE)
+msd=msd(trackll,dt=8,summarize=TRUE,plot=TRUE)
 str(msd)
+
+## focus on a group of trajectory by setting filter greater than dt
+msd=msd(trackll,dt=6,summarize=TRUE,filter=c(7,Inf),plot=TRUE)
 }
 

@@ -5,20 +5,16 @@
 \alias{Dcoef}
 \title{Dcoef}
 \usage{
-Dcoef(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F)
+Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
 
 \item{dt}{Time intervals.}
 
-\item{resolution}{ratio of pixel to µM.}
-
-\item{lag.start}{time lag used as start of dt for compute Dcoef.}
-
-\item{lag.end}{Time lag used as end of dt for compute Dcoef.}
-
 \item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
+
+\item{resolution}{ratio of pixel to µM.}
 
 \item{binwidth}{binwidth used for histogram, default 0.5.}
 
@@ -26,6 +22,12 @@ Dcoef(trackll,dt=8,resolution=0.107,lag.start=2,lag.end=5,filter=F,binwidth=0.5,
 
 \item{output}{An Logical indicate if output should be generated. See Values
 for detail.}
+
+\item{t.interval}{time interval between frames, default 0.010 s (10ms).}
+
+\item{lag.start}{time lag used as start of dt for compute Dcoef.}
+
+\item{lag.end}{Time lag used as end of dt for compute Dcoef.}
 }
 \value{
 \itemize{

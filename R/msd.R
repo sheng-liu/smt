@@ -11,14 +11,14 @@
 ##' @description calculate mean square displacement for individual trajectory or
 ##'   summarize on trajectories.
 
-##' @usage msd(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
+##' @usage msd(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,output=F)
 ##' @param dt Time intervals.
 ##' @param resolution ratio of pixel to µM.
 ##' @param trackll Track list output from readDiatrack().
 ##' @param summarize An logical indicate if MSD should be calculated on
 ##'   individual trajectories (Default) or summarized on all trajectories.
 ##'
-##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > = dt).
+##' @param filter a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.
 ##'
 ##' @param plot An logical indicate if plot should be generated. See Values for
 ##'   detail.
@@ -46,8 +46,11 @@
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' msd=msd(trackll,dt=6,summarize=TRUE,filter=TRUE,plot=TRUE)
+##' msd=msd(trackll,dt=8,summarize=TRUE,plot=TRUE)
 ##' str(msd)
+##'
+##' ## focus on a group of trajectory by setting filter greater than dt
+##' msd=msd(trackll,dt=6,summarize=TRUE,filter=c(7,Inf),plot=TRUE)
 
 ##' @details
 ##' msd() calculate track (/trajectory)'s mean square displacement as a function
@@ -59,6 +62,8 @@
 ##' is 1 (N-dt > = 1), so the maxium dt is N-1 (dt < = N-1). As dt increase, the
 ##' number of steps used to generate that mean decrease with the maxmum dt
 ##' (dt=N-1) generated from one step.
+##'
+##' if one wants to focus on a group of trajectory's evolution, he can simply filter on a number that is bigger than the dt he wanted to plot MSD.
 
 ##' @import ggplot2
 ##' @import dplyr
@@ -66,7 +71,7 @@
 ## @import reshape2::melt
 ##' @import reshape2
 ##' @export msd
-## @export msd.track
+
 
 ## TODO:melt implementation
 ###############################################################################
@@ -79,7 +84,9 @@
 ## track, data.frame, xyz
 ## resolution 107nm=1 pixel
 
-msd.track=function(track,dt=1,resolution=0.107){
+##' @export msd.track
+##'
+msd.track=function(track,dt=6,resolution=0.107){
 
     # validity check for dt less than track length
     if (dt >(dim(track)[1]-1)){
@@ -87,6 +94,7 @@ msd.track=function(track,dt=1,resolution=0.107){
              "\ndt:\t\t",dt,
              "\nTime interval (dt) greater than track length-1\n")
     }
+
 
     # summarize msd for track at all dt
     # note this function calculates only "at" all dt
@@ -148,7 +156,7 @@ msd.track=function(track,dt=1,resolution=0.107){
 
 ## calculate msd.track for trackl (list of data.frame) one level
 
-msd.trackl=function(trackl,dt=1,resolution=0.107){
+msd.trackl=function(trackl,dt=6,resolution=0.107){
 
     # validity check for max track length greater than dt
     track.len=sapply(trackl,function(x) dim(x)[1])
@@ -180,8 +188,6 @@ msd.trackl=function(trackl,dt=1,resolution=0.107){
         num.tracks[i]=length(trackl.dt)
         msd.individual=sapply(trackl.dt,function(x){
             msd.track(track=x,dt=i,resolution=resolution)})
-
-
 
 
         # i=1, sapply returns a vecotr
@@ -216,7 +222,7 @@ msd.trackl=function(trackl,dt=1,resolution=0.107){
 ##------------------------------------------------------------------------------
 ## msd.trackll
 
-msd.trackll=function(trackll,dt=1,resolution=0.107){
+msd.trackll=function(trackll,dt=6,resolution=0.107){
 
 
     msd.trackll.lst=lapply(trackll,function(x){
@@ -239,20 +245,25 @@ msd.trackll=function(trackll,dt=1,resolution=0.107){
 ## pass in a list of tracks (list of data.frame), calculate msd for individual
 ## tracks over time  and output a or calculate averaged msd for all tracks
 
-msd=function(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F){
+# msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=F,plot=F,output=F){
+#
+#     # filter out frames has less than dt+1
+#
+#     if (filter == TRUE){
+#         track.len=list()
+#         for (i in 1:length(trackll)){
+#
+#             track.len[[i]]=sapply(trackll[[i]],function(track){dim(track)[1]})
+#             # take tracks have dt+1 frames
+#             trackll[[i]]=trackll[[i]][track.len[[i]]>dt]
+#
+#         }
+#     }
 
-    # filter out frames has less than dt+1
+msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,output=F){
 
-    if (filter == TRUE){
-        tracklen=list()
-        for (i in 1:length(trackll)){
-
-            tracklen[[i]]=sapply(trackll[[i]],function(track){dim(track)[1]})
-            # take tracks have dt+1 frames
-            trackll[[i]]=trackll[[i]][tracklen[[i]]>dt]
-
-        }
-    }
+    ## filtration of tracks using filter
+    trackll=filtration(trackll,filter=filter)
 
     MSD=msd.trackll(trackll,dt=dt,resolution=resolution)
     file.name=names(trackll)
@@ -294,11 +305,12 @@ msd=function(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
         #         melt(m)
         #         dcast(melt(m),Index~...)
 
-        msd.plot=ggplot(p,aes(x=dt,y=SummarizedMSD,
-                              group=file.name,col=file.name))+
+        msd.plot=ggplot(
+            p,aes(x=1:length(dt),y=SummarizedMSD,group=file.name,col=file.name))+
             geom_line()+geom_point()+
             geom_errorbar(aes(ymin=SummarizedMSD-StandardError,
                               ymax=SummarizedMSD+StandardError), width=.1)+
+            labs(x="Time intervals (10ms)", y="SummarizedMSD (µm^2)")+
             theme_classic()+
             theme(legend.title=element_blank())
 
@@ -356,9 +368,65 @@ msd=function(trackll,dt=1,resolution=0.107,summarize=F,filter=F,plot=F,output=F)
     return(MSD)
 }
 
+##------------------------------------------------------------------------------
+## msd.vecdt
+
+## a msd function that calculates msd for individual track based on a list (corresponding to tracks list) of vector of dt
+
+##' @export msd.vecdt
+msd.vecdt=function(trackll,vecdt=NULL,resolution=0.107,filter=c(min=7,max=Inf),output=F){
+
+    ## filtration of tracks using filter
+    trackll=filtration(trackll,filter=filter)
 
 
+    ## dt is in a list, track is in a list, use i j system maybe better
+    # copy trackll's structure
+    msd.list=list()
+    length(msd.list)=length(trackll)
+    names(msd.list)=names(trackll)
 
+
+    # i folder name level
+    for (i in 1:length(trackll)){
+
+        # j data.frame level
+        for (j in 1:length(trackll[[i]])){
+
+            cat("\rcalculating MSD for individual tracks...",i,j)
+            msd.list[[i]][[j]]=msd.track(track=trackll[[i]][[j]],
+                                         dt=vecdt[[i]][[j]],
+                                         resolution=resolution)
+        }
+    }
+
+    if(output==T){
+
+        p=melt(msd.list)
+        p=cbind(rownames(p),p)
+        colnames(p)=c("index","msd","track.num","file.name")
+
+        fileName=paste("MSD individual-",
+                       .timeStamp("vecdt"),".csv",sep="")
+        cat("\nOutput MSD for individual trajectories.\n")
+        write.csv(file=fileName,p)
+
+    }
+
+    return(msd.list)
+
+    # this list is of different length, only used for curve fitting
+
+}
+
+#     # need to fill the gap to plot correctly
+#     msd.plot=ggplot(p,aes(x=1:length(index),y=msd,
+#                           group=interaction(file.name,track.num),
+#                           col=file.name))+
+#         geom_line()+
+#         labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
+#         theme_classic()+
+#         theme(legend.title=element_blank())
 
 
 
