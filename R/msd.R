@@ -393,7 +393,7 @@ msd.vecdt=function(trackll,vecdt=NULL,resolution=0.107,filter=c(min=7,max=Inf),o
         # j data.frame level
         for (j in 1:length(trackll[[i]])){
 
-            cat("\rcalculating MSD for individual tracks...",i,j)
+            cat("\rcalculating MSD for individual tracks...","folder ",i," track ",j)
             msd.list[[i]][[j]]=msd.track(track=trackll[[i]][[j]],
                                          dt=vecdt[[i]][[j]],
                                          resolution=resolution)

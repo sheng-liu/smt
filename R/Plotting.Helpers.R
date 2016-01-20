@@ -2,21 +2,51 @@
 
 ##------------------------------------------------------------------------------
 ## plotHistogram
-plotHistogram=function(Log.D.inst,binwidth=0.5){
+plotHistogram=function(Log.D.inst,binwidth=0.5, method){
     p=reshape2::melt(Log.D.inst)
-    colnames(p)=c("Log.D.inst","file.name")
 
-    # overlay histogram and density plot without changing count as y axies
-    Dcoef.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
-        #geom_histogram(aes(y = ..count..,fill=file.name),binwidth=0.2,position="identity")+
-        geom_histogram(aes(y = ..count..,fill=file.name),binwidth=binwidth,position="dodge")+
+    if (method=="static"||method=="percentage"){
 
-        geom_density(aes(y=0.2*..count..,fill=file.name),alpha=0.2)+
-        theme_classic()+
-        theme(legend.title=element_blank())
-    plot(Dcoef.plot)
+        colnames(p)=c("Log.D.inst","file.name")
 
+        # overlay histogram and density plot without changing count as y axies
+        Dcoef.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+            geom_histogram(aes(y = ..count..,fill=file.name),
+                           binwidth=binwidth,position="dodge")+
+
+            geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            theme_classic()+
+            theme(legend.title=element_blank())
+        plot(Dcoef.plot)
+    }else if (method=="rolling.window"){
+
+
+
+        colnames(p)=c("Log.D.inst","window.name","file.name")
+
+        facet.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+            geom_histogram(aes(y = ..count..,fill=file.name),
+                           binwidth=binwidth,position="dodge")+
+
+            geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            theme_classic()+
+            theme(legend.title=element_blank())+
+            facet_grid(window.name ~ .)
+
+        merged.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+            geom_histogram(aes(y = ..count..,fill=file.name),
+                           binwidth=binwidth,position="dodge")+
+            geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            theme_classic()+
+            theme(legend.title=element_blank())
+
+        multiplot(facet.plot,merged.plot,cols=2)
+
+    }
 }
+## TODO:
+## change the 0.5 to binwidth, so it is dynamic, it is not recognized somehow.
+
 
 ##------------------------------------------------------------------------------
 ## plotDensity
@@ -76,7 +106,9 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
 
 ##------------------------------------------------------------------------------
 ## plotVariance
-plotVariance=function(Log.D.inst){
+plotVariance=function(Log.D.inst,method){
+
+        cat("generating variance plot \n")
 
     ## plot data preparation
     ## plot mean of Log.D.inst of each individual trajectory, against variance of each individual trajectory

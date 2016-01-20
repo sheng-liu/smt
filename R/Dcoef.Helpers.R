@@ -20,6 +20,8 @@
 ## return a list of coefficients
 Dcoef.static=function(MSD,lag.start=2,lag.end=5,t.interval=0.010){
 
+    cat("lag.start  ",lag.start,"\t","lag.end  ",lag.end,"\n")
+
     #  linear fitting of the MSD curves between time dt 2 and 5
     x=(lag.start:lag.end)*t.interval
     dimension=2
@@ -256,6 +258,21 @@ rsquare.filter=function(D.inst,static=TRUE){
         corr.filter=lapply(corr,function(x){x>=0.8})
         D.inst.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
 
+#         D.inst.subset.slope=mapply("[",slope,corr.filter,SIMPLIFY=F)
+#
+#         D.inst.subset.corr=mapply("[",corr,corr.filter,SIMPLIFY=F)
+#
+#         merge(D.inst.subset.slope,D.inst.subset.corr)
+#
+#         D.inst.subset=list()
+#         for (i in 1:length(d)){
+#             D.inst.subset[[i]]=mapply("[",d[i],corr.filter,SIMPLIFY=T)
+#         }
+#         D.inst.subset
+
+
+
+
     }else{
 
         # to varify the fit
@@ -351,5 +368,6 @@ Dcoef.log=function(D.inst.subset,static=T){
         return(Log.D.inst)
 
     }
+    return(Log.D.inst)
 
 }

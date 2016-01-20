@@ -31,7 +31,8 @@
 ##' \item{PDF} Log.Dcoef histogram fitted with density curve, when plot = TRUE.
 ##' \item{csv} Dcoef output in csv format, when output = TRUE.
 ##' }
-
+##' @details Generic parameters (parameter applied to all methods, such as resolution etc) are set in the function. Method dependent parameters (such as lag.start, lag.end for method = "static"), are stored in profile.csv in PREF folder under extdata. To change preference parameter, can either programably or manually go to folder system.file("extdata","PREF","profile.csv",package="smt"), and change the profile.csv.
+##'
 ##' @examples
 ##' # compare files
 ##' folder=system.file("extdata","SWR1",package="smt")
@@ -42,7 +43,7 @@
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(folder1,folder2)
-##' Dcoef(trackll,plot="variance")
+##' Dcoef(trackll,plot="variance"
 
 ##' @export Dcoef
 ###############################################################################
@@ -57,21 +58,31 @@ Dcoef=function(
 ##------------------------------------------------------------------------------
 ## set corresponding switches
 
+    ## read in preference parameters
+    ## these are some method dependent parameters, the generic parameters (parameter applied to all methods) are set in the function
+
+    profile=system.file("extdata","PREF","profile.csv",package="smt")
+    PARAM=read.csv(file=profile,header=T,row.names="PARAMETER")
+    lag.start=PARAM["lag.start",]
+    lag.end=PARAM["lag.end",]
+    binwidth=PARAM["binwidth",]
+
     method=match.arg(method)
 
     switch(method,
            static={
-               cat("\napplying static,lag.start=2, lag.end=5\n")
+               cat("\napplying static,lag.start=",
+                   lag.start,"\t","lag.end=", lag.end,"\n")
                static=T
-               lag.start=2
-               lag.end=5
+               lag.start=lag.start
+               lag.end=lag.end
 
                # calculate MSD
                MSD=msd(trackll,dt=dt,resolution=resolution,
                        filter=filter,summarize=F)
 
                # calculate Dcoef using rolling window
-               D.coef=Dcoef.static(MSD,t.interval=t.interval)
+               D.coef=Dcoef.static(MSD,lag.start=lag.start,lag.end=lag.end,t.interval=t.interval)
            },
            rolling.window={
                cat("\napplying rolling window,
@@ -137,12 +148,23 @@ Dcoef=function(
 
     plot=match.arg(plot)
     switch(plot,
-           variance=plotVariance(Log.D.coef),
+           variance={
+               if (method=="static"||method=="percentage"){
+
+                   cat("variance plot for method static and percentage not available for smt v0.2 \n")
+
+#                    cat("variance plot for method static and percentage does not use rsquare filter. \n")
+#                    Log.D.coef.nofilter=Dcoef.log(D.coef,static=T)
+#                    plotVariance(Log.D.coef.nofilter,method=method)
+
+               }else{ plotVariance(Log.D.coef,method=method)}
+
+              },
 
            ## needs more work to deal with a list
 
            # see count inforamtion
-           histogram=plotHistogram(Log.D.coef,binwidth = binwidth),
+           histogram=plotHistogram(Log.D.coef,binwidth = binwidth,method=method),
 
            # plot frequency so it is easier to compare groups
            density=plotDensity(Log.D.coef,binwidth = binwidth,method=method)
