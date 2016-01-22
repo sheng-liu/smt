@@ -29,22 +29,25 @@
 
 
 ##' @export CDF
+##'
+##'
+##'
 ###############################################################################
 
 
 # plot histogram, CDF of MSD at 8 time point
 # superimpose them on one graph
 
-
-
 # calculate MSD for all trajectory at a single dt, plot all those MSD's CDF and histogram
 
+## CDF on MSD
+## if one select filter as 2 frames, then it is not filtering out any short tracks
 
 CDF=function(trackll,dt){
 
 
     ## get the data, msd at individual trajectories
-    MSD=msd(trackll,dt=dt,summarize=F,filter=T)
+    MSD=msd(trackll,dt=dt,summarize=F,filter=c(min=2,max=Inf))
 
     # cdf
     # each row is MSD of individual trajectories at dt
@@ -84,6 +87,76 @@ CDF=function(trackll,dt){
     return(ecdf)
 
 }
+
+## TODO: should add original cumsum as well, as it is also valid way of comparison
+## CDF on Log.Dcoef,  compare with Log.Dcoef histogram
+## and Dcoef this way one is not losing the negative values
+
+
+
+## CDF on squaredisp.sqrt
+
+## CDF is essentially a way of representing data, like histogram or density
+## should/can be added to plot method of each function.
+
+# CDFsquaredisp=function(track,dt=6,resolution=0.107){
+#
+#     # validity check for dt less than track length
+#     if (dt >(dim(track)[1]-1)){
+#         stop("\ntrack length:\t",dim(track)[1],
+#              "\ndt:\t\t",dt,
+#              "\nTime interval (dt) greater than track length-1\n")
+#     }
+#
+#
+#     msd.dt.track=c()
+#     for (i in 1:dt){
+#
+#         #track.sqd=squareDisp(track,dt=i,resolution=resolution)
+#
+#         # at each dt, there are dt number of sub-trajectory/sub-tracks
+#         # mean of dt-wise sub-trajectories/ step-wise sub tracks
+#         # average subtracks into one number at each dt
+#         #msd.dt.subtrack=sapply(track.sqd,function(x){
+#         #    mean(x$square.disp,na.rm=T)})
+#         # msd.dt.track[i]=mean(msd.dt.subtrack)
+#
+#         # caculate msd for track at specified dt
+#         track.sqd=squareDisp(track,dt=i,resolution=resolution)
+#
+#         # pull all the squared displacement at this dt together
+#         square.disp=do.call(rbind,track.sqd)$square.disp
+#         square.disp=square.disp[!is.na(square.disp)]
+#         # get the genuine mean
+#         msd=mean(square.disp)
+#
+#
+#         # get the sum of all subtrajectories then average them
+#         #         sum.square.disp=lapply(track.sqd,function(trk){
+#         #           # subsetting list with [["colnames]]
+#         #           sum(trk[["square.disp"]],na.rm=T)})
+#         #         # get the msd
+#         #         msd=mean(do.call(rbind,sum.square.disp))
+#
+#
+#         # for any N length trajectory, one can have N-1 dt steps
+#         # the resulting msd at each dt is generated from N:N-1 individual steps
+#         msd.dt.track=c(msd.dt.track, msd)
+#
+#
+#     }
+#
+#     return(msd.dt.track)
+#
+#
+#
+# }
+
+
+
+
+
+
 
 
 

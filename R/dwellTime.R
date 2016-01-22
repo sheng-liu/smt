@@ -45,7 +45,41 @@ dwellTime=function(trackll,exposure=10,plot=F,output=F){
     ## reshape data for plot
     dwell.time.mlt=melt(dwell.time)
 
-    freqpoly=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_classic()+ theme(legend.title=element_blank())
+    freqpoly=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_classic()+ theme(legend.title=element_blank())+xlim(0,200)
+
+
+#     histodensity=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_classic()+ theme(legend.title=element_blank())
+#
+#     histodensity=ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
+#     geom_histogram(aes(y = ..density..),
+#                    binwidth=exposure,position="dodge")+
+#         geom_density(alpha = 0.2)+
+#         labs(x="Dwell time (ms)", y="Frequency")+
+#         theme_classic()+
+#         theme(legend.title=element_blank())+
+#         xlim(0,200)
+#
+#
+#
+#     ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
+#         geom_density(alpha = 0.2)+
+#         labs(x="Dwell time (ms)", y="Count")+
+#         theme_classic()+
+#         theme(legend.title=element_blank())+
+#         xlim(0,200)
+#
+#
+#     ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
+#         geom_histogram(aes(y = ..count..),
+#                        binwidth=exposure,position="dodge")+
+#
+#         geom_density(aes(y=10*..count..),alpha=0.2)+
+#         theme_classic()+
+#         theme(legend.title=element_blank())+
+#         xlim(0,200)+
+#         ylim(0,50)
+
+
 
     if (plot==T) plot(freqpoly)
 

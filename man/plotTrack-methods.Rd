@@ -29,9 +29,17 @@ plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,fr
 \description{
 Plot track/trajectory from track list. either randomly or specified.
 }
+\details{
+plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+}
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder,ab.track=TRUE)
 plotTrack(trackll)
+
+## plot from index file
+index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")
+movie.folder=system.file("extdata","SWR1",package="smt")
+plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
 }
 

@@ -25,25 +25,39 @@
 ##' \item{PDF} One PDF file with all the frames satisfy the creteria. If trackll has multiple items, it ouptus mutiple PDF files each corresponding to one item.
 
 ##' }
+##' @details plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder,ab.track=TRUE)
 ##' plotTrack(trackll)
+##'
+##' ## plot from index file
+##' index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")
+##' movie.folder=system.file("extdata","SWR1",package="smt")
+##' plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
 
 ## @import reshape2
 ##' @export plotTrack
-## @export .plotTrack
+##' @export .plotTrack
+##' @export plotTrackFromIndex
 ## @import animation
 ## FUTURE: maybe plot on dt
+
 
 ## TODO: make the function input as c(min,max)
 ###############################################################################
 
 .plotTrack=function(ab.trackl,file.name="TrajectoryPlot",resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500){
 
+    # trackl is just a list of trajectories, with no upper level indicating folder
     ab.trackl.res=lapply(ab.trackl,function(x) x*resolution)
     m=max(sapply(ab.trackl.res,max))
+
+
+    # add names to each plot
+    name=names(ab.trackl)
+
 
     fileName=paste(.timeStamp(file.name),".pdf",sep="")
 
@@ -60,8 +74,10 @@
         frame.len=dim(p)[1]
         if (frame.len>frame.min & frame.len<frame.max)
         plot(p$x,p$y,type="l",xlim=c(0,m),ylim=c(0,m),xlab="X (µM)",
-             ylab="Y (µM)")
+             ylab="Y (µM)",sub=name[[i]])
         }
+
+    # main = name[[i]]
     dev.off()
 
 
@@ -89,6 +105,33 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
 
 
 
+## plot trajectory according to index
+## user need to put the corresponding movie files into a folder
+
+plotTrackFromIndex=function(index.file, movie.folder,resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500){
+
+    ## read trajectory index from the index.file
+    index.df=read.csv(file=index.file,header=T)
+    index=as.character(index.df[,1])
+
+    ## read in tracks in movie.folder with absolute coords,
+    ## merge them as the input is merged csv files
+    ab.trackll=readDiatrack(movie.folder,merge=T,ab.track=T)
+
+    # as it is only for one folder
+    # trackl.plot=ab.trackll[[1]][index]
+
+    ## because it is a merged list, use .plotTrack
+    ## .plotTrack(trackl.plot,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
+
+
+    # or one can maintain the ab.trackl's structure, which has the folder name
+    trackll.plot=lapply(ab.trackl,function(x){x[index]})
+
+    plotTrack(trackl.plot,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
+
+
+}
 
 
 

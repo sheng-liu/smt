@@ -98,6 +98,35 @@
 
     }
 
+    ## name the tracks
+
+    # frame.id
+    frame.num.mx=matrix(frame.num,ncol=3,nrow=length(frame.num)/3,byrow=T)
+    frame.id=unlist(frame.num.mx[,1])
+
+    # duration
+    duration=table(frame.id)
+
+    # file.id
+    file.subname=substr(file.name,
+           start=nchar(file.name)-8,
+           stop=nchar(file.name)-4)
+
+    file.id=rep(file.subname,length(duration))
+
+    # index
+    index=seq(from=1,to=length(duration))
+
+    ## trackID=fileID.frameID.duration.index
+
+
+     ## create a name vector
+    track.name=paste(file.id,frame.id,duration,index,sep=".")
+
+    # name the track
+    names(track.list)=track.name
+    names(ab.track.list)=track.name
+
     if (ab.track==T) return(ab.track.list) else return(track.list)
 
 }
@@ -140,7 +169,7 @@ readDiatrack=function(folder,merge= F,ab.track=F){
 
         for (i in 1:length(file.list)){
 
-            track=.readDiatrack(file=file.list[i])
+            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
             # concatenate tracks into one list of data.frames
             track.holder=c(track.holder,track)
 
@@ -148,6 +177,10 @@ readDiatrack=function(folder,merge= F,ab.track=F){
         # make the result a list of list with length 1
         trackll[[1]]=track.holder
         names(trackll)[[1]]=folder.name
+
+
+        # can put file name into name of the tracks
+        # filename was putinto the name of the tracks
     }
 
 

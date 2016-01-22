@@ -43,7 +43,7 @@
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(folder1,folder2)
-##' Dcoef(trackll,plot="variance"
+##' Dcoef(trackll,plot="variance")
 
 ##' @export Dcoef
 ###############################################################################

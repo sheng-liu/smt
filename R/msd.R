@@ -182,8 +182,7 @@ msd.trackl=function(trackl,dt=6,resolution=0.107){
             stop("no track satisfies dt =",i,"\n")
         }
 
-        cat("\n",length(trackl.dt),
-            "tracks satisfy dt =",i,"\n")
+        cat("\n",length(trackl.dt),"tracks satisfy dt =",i,"\n")
 
         num.tracks[i]=length(trackl.dt)
         msd.individual=sapply(trackl.dt,function(x){
@@ -306,7 +305,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
         #         dcast(melt(m),Index~...)
 
         msd.plot=ggplot(
-            p,aes(x=1:length(dt),y=SummarizedMSD,group=file.name,col=file.name))+
+            p,aes(x=dt,y=SummarizedMSD,group=file.name,col=file.name))+
             geom_line()+geom_point()+
             geom_errorbar(aes(ymin=SummarizedMSD-StandardError,
                               ymax=SummarizedMSD+StandardError), width=.1)+
@@ -315,6 +314,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
             theme(legend.title=element_blank())
 
 
+        # p,aes(x=1:length(dt),y=SummarizedMSD,group=file.name,col=file.name))
         if (plot==T) plot(msd.plot)
 
         if (output==T){
