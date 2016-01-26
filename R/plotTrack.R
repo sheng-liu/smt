@@ -11,12 +11,17 @@
 ##' @description Plot track/trajectory from track list. either randomly or specified.
 
 ##' @usage plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
+##'
+##' plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
+##'
 ##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
 ##' @param resolution ratio of pixel to µM.
 ##' @param frame.min minimum frame number for plotting.
 ##' @param frame.max max frame number for plotting.
 ##' @param frame.start the first frame to plot. Default 1.
 ##' @param frame.end last frame to plot. Default 500.
+##' @param index.file a csv file that contains index of tracks in the first column. Leave a header line when preparing such a file.
+##' @param movie.folder the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).
 
 
 ##' @return
@@ -74,13 +79,13 @@
         frame.len=dim(p)[1]
         if (frame.len>frame.min & frame.len<frame.max)
         plot(p$x,p$y,type="l",xlim=c(0,m),ylim=c(0,m),xlab="X (µM)",
-             ylab="Y (µM)",sub=name[[i]])
+             ylab="Y (µM)",main=name[[i]])
         }
 
-    # main = name[[i]]
+    # sub = name[[i]]
     dev.off()
 
-
+    return(ab.trackl.res)
 
 }
 
@@ -92,13 +97,23 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
 
     for (i in 1:length(file.name)){
 
-        .plotTrack(ab.trackll[[i]],file.name[i],resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
-
+        # output plot
         cat("\nOutput track plot...\n")
+
+        plot.coords=.plotTrack(ab.trackll[[i]],file.name[i],resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
+
+        # output csv of the plot
+        cat("\nOutput csv file for track plot...\n")
+
+        plot.coords.df=do.call(rbind,plot.coords)
+
+
+        fileName=paste("Track Coords-",.timeStamp(file.name[i]),".csv",sep="")
+        write.csv(file=fileName,plot.coords.df)
 
     }
 
-        # lapply(ab.trackll,function(ab.trackl,file.name){.plotTrack(ab.trackl,file.name,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)})
+    # lapply(ab.trackll,function(ab.trackl,file.name){.plotTrack(ab.trackl,file.name,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)})
     # lapply can only take one input
 
 }
@@ -117,6 +132,9 @@ plotTrackFromIndex=function(index.file, movie.folder,resolution=0.107,frame.min=
     ## read in tracks in movie.folder with absolute coords,
     ## merge them as the input is merged csv files
     ab.trackll=readDiatrack(movie.folder,merge=T,ab.track=T)
+    # the reason for merge is so that the output plot all in one file
+    # the further version request to accept multiple movie folder, output csv may be adjust to that. each movie folder correspondingly has an output file?
+
 
     # as it is only for one folder
     # trackl.plot=ab.trackll[[1]][index]
@@ -126,9 +144,9 @@ plotTrackFromIndex=function(index.file, movie.folder,resolution=0.107,frame.min=
 
 
     # or one can maintain the ab.trackl's structure, which has the folder name
-    trackll.plot=lapply(ab.trackl,function(x){x[index]})
+    trackll.plot=lapply(ab.trackll,function(x){x[index]})
 
-    plotTrack(trackl.plot,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
+    plotTrack(trackll.plot,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
 
 
 }

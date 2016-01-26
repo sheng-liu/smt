@@ -72,11 +72,14 @@
     track.list=list()
     # store absolute coordinates of track for comparison plots
     ab.track.list=list()
+    # store track.len
+    track.len=c()
 
 
     # select 3 column at a time
     # can use frame number to do this, but this way makes the program more
     # robust with little to non decrease in efficiency
+
     for (i in 1:(dim(data)[2]/3)) {
 
         #i=2
@@ -88,6 +91,9 @@
 
         # the [[]] is important, otherwise only x is included
         track.list[[i]]=track
+
+        # store track.len
+        track.len[i]=dim(track)[1]
 
         ## preprocess to fix coordinates from 0 to max
         ## absolute value of trajectory movement
@@ -105,7 +111,10 @@
     frame.id=unlist(frame.num.mx[,1])
 
     # duration
-    duration=table(frame.id)
+
+
+    # duration=table(frame.id)
+    duration=track.len
 
     # file.id
     file.subname=substr(file.name,
@@ -118,9 +127,6 @@
     index=seq(from=1,to=length(duration))
 
     ## trackID=fileID.frameID.duration.index
-
-
-     ## create a name vector
     track.name=paste(file.id,frame.id,duration,index,sep=".")
 
     # name the track

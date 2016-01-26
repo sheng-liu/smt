@@ -7,6 +7,8 @@
 \title{plotTrack}
 \usage{
 plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
+
+plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
 }
 \arguments{
 \item{resolution}{ratio of pixel to µM.}

@@ -11,4 +11,4 @@ LazyData: TRUE
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
-Imports:ggplot2,dplyr,reshape2
+Imports:ggplot2,dplyr,reshape2,gridExtra
