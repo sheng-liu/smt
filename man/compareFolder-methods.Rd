@@ -5,10 +5,12 @@
 \alias{compareFolder}
 \title{compareFolder}
 \usage{
-compareFolder(folder1,folder2,folder3=NULL,folder4=NULL,folder5=NULL)
+compareFolder(folders=c(folder1,folder2,...),ab.track=F)
 }
 \arguments{
-\item{folder}{the path to the folder location.}
+\item{folders}{a vector storing paths to the folders location."..." indicates multiple (unlimited) folders can be added into the function.}
+
+\item{ab.track}{a Logical indicating if absolute coordinates should be used.}
 }
 \value{
 \itemize{
@@ -16,12 +18,12 @@ compareFolder(folder1,folder2,folder3=NULL,folder4=NULL,folder5=NULL)
 }
 }
 \description{
-compare (2 ~ 5) folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
+compare folders with Diatrack output files. merge track files in each folder into one item of a track list. This list can then be fed into other functions for comparison.
 }
 \examples{
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
-trackll=compareFolder(folder1,folder2)
+trackll=compareFolder(c(folder1,folder2))
 str(trackll,max.level=1)
 }
 

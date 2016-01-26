@@ -12,7 +12,7 @@
 
 ##' @usage plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
 ##'
-##' plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
+##' plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
 ##'
 ##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
 ##' @param resolution ratio of pixel to µM.
@@ -41,6 +41,14 @@
 ##' index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")
 ##' movie.folder=system.file("extdata","SWR1",package="smt")
 ##' plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
+##'
+##' ## index file contain trajectories from multiple movie folders
+##' folder1=system.file("extdata","SWR1",package="smt")
+##' folder2=system.file("extdata","HTZ1",package="smt")
+##' index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
+##' plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
+
+
 
 ## @import reshape2
 ##' @export plotTrack
@@ -106,6 +114,7 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
         cat("\nOutput csv file for track plot...\n")
 
         plot.coords.df=do.call(rbind,plot.coords)
+        # melt(plot.coords)
 
 
         fileName=paste("Track Coords-",.timeStamp(file.name[i]),".csv",sep="")
@@ -123,18 +132,40 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
 ## plot trajectory according to index
 ## user need to put the corresponding movie files into a folder
 
-plotTrackFromIndex=function(index.file, movie.folder,resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500){
+plotTrackFromIndex=function(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500){
 
     ## read trajectory index from the index.file
     index.df=read.csv(file=index.file,header=T)
     index=as.character(index.df[,1])
 
-    ## read in tracks in movie.folder with absolute coords,
-    ## merge them as the input is merged csv files
-    ab.trackll=readDiatrack(movie.folder,merge=T,ab.track=T)
-    # the reason for merge is so that the output plot all in one file
-    # the further version request to accept multiple movie folder, output csv may be adjust to that. each movie folder correspondingly has an output file?
 
+#     # TODO: the number of folder to compare can be extended using ... statement
+#     folder.list=list()
+#     for (i in 1:length(movie.folder)){
+#         folder.list[[i]]=movie.folder[i]
+#     }
+#
+#
+#     # remove null folders by subsetting un-null folders
+#     null.folder=sapply(folder.list,is.null)
+#     folder.list=folder.list[!null.folder]
+#
+#     names(folder.list)=sapply(folder.list,basename)
+#
+#     ab.trackll=list()
+#
+#     for (i in 1:length(folder.list)) {
+#
+#         ## read in tracks in movie.folder with absolute coords,
+#         ## merge them as the input is merged csv files
+#         ab.trackll[i]=readDiatrack(folder=folder.list[[i]],merg=T,ab.track=T)
+#         cat("\n...\n") # seperator makes ouput clearer
+#         names(ab.trackll)[i]=names(folder.list)[i]
+#
+#
+#     }
+
+    ab.trackll=compareFolder(folders=movie.folder,ab.track=T)
 
     # as it is only for one folder
     # trackl.plot=ab.trackll[[1]][index]
@@ -146,7 +177,18 @@ plotTrackFromIndex=function(index.file, movie.folder,resolution=0.107,frame.min=
     # or one can maintain the ab.trackl's structure, which has the folder name
     trackll.plot=lapply(ab.trackll,function(x){x[index]})
 
-    plotTrack(trackll.plot,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
+    ## remove NA (or combine it into one list)
+
+    trackll.plot.narm=lapply(trackll.plot, function(x) x[!is.na(names(x))])
+
+    ## if the list is length 0, remove it
+    ## remove zero length list
+    for (i in 1:length(trackll.plot.narm)){
+
+        if (length(trackll.plot.narm[[i]])==0) trackll.plot.narm[[i]]=NULL
+    }
+
+    plotTrack(trackll.plot.narm,resolution=resolution,frame.min=frame.min,frame.max=frame.max,frame.start=frame.start,frame.end=frame.end)
 
 
 }

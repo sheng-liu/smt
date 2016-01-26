@@ -19,7 +19,7 @@
 ##' @param lag.end Time lag used as end of dt for compute Dcoef.
 ##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
 ##'
-##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidt; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.
+##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidth; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.
 ##'
 ##' @param binwidth binwidth used for histogram, default 0.5.
 ##' @param output An Logical indicate if output should be generated. See Values
@@ -42,7 +42,7 @@
 ##' # compare folders
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
-##' trackll=compareFolder(folder1,folder2)
+##' trackll=compareFolder(c(folder1,folder2))
 ##' Dcoef(trackll,plot="variance")
 
 ##' @export Dcoef
@@ -65,7 +65,8 @@ Dcoef=function(
     PARAM=read.csv(file=profile,header=T,row.names="PARAMETER")
     lag.start=PARAM["lag.start",]
     lag.end=PARAM["lag.end",]
-    binwidth=PARAM["binwidth",]
+    # binwidth=PARAM["binwidth",]
+    ## TODO: set binwidth automatic to 1/30 of x scale
 
     method=match.arg(method)
 

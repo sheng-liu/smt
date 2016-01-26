@@ -8,7 +8,7 @@
 \usage{
 plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
 
-plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
+plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
 }
 \arguments{
 \item{resolution}{ratio of pixel to µM.}
@@ -22,6 +22,10 @@ plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
 \item{frame.end}{last frame to plot. Default 500.}
 
 \item{ab.trackll}{absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).}
+
+\item{index.file}{a csv file that contains index of tracks in the first column. Leave a header line when preparing such a file.}
+
+\item{movie.folder}{the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).}
 }
 \value{
 \itemize{
@@ -43,5 +47,11 @@ plotTrack(trackll)
 index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")
 movie.folder=system.file("extdata","SWR1",package="smt")
 plotTrackFromIndex(index.file=index.file,movie.folder = movie.folder)
+
+## index file contain trajectories from multiple movie folders
+folder1=system.file("extdata","SWR1",package="smt")
+folder2=system.file("extdata","HTZ1",package="smt")
+index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
+plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 }
 

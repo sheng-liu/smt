@@ -1,4 +1,4 @@
 PARAMETER,VALUE
 lag.start,2
 lag.end,5
-binwidth,0.5
+binwidth,0.1

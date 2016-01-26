@@ -50,6 +50,7 @@ Dcoef.static=function(MSD,lag.start=2,lag.end=5,t.interval=0.010){
         colnames(x)=c("slope","corr")
         return(x)
     },simplify = F)
+
     return(D.inst)
 }
 

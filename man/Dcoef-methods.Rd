@@ -18,7 +18,7 @@ Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),resolution=0.107,binwidth=0.5,method
 
 \item{binwidth}{binwidth used for histogram, default 0.5.}
 
-\item{plot}{A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidt; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.}
+\item{plot}{A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidth; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.}
 
 \item{output}{An Logical indicate if output should be generated. See Values
 for detail.}
@@ -52,7 +52,7 @@ Dcoef(trackll,plot="density")
 # compare folders
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
-trackll=compareFolder(folder1,folder2)
+trackll=compareFolder(c(folder1,folder2))
 Dcoef(trackll,plot="variance")
 }
 
