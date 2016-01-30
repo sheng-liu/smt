@@ -148,17 +148,16 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
     }
 
 
+    # for all tracks, take the first percentage*length steps
+    # no matter how short they are
+
+
+
     msd.list=msd.vecdt(trackll,vecdt=N,resolution=resolution,filter=filter,output=F)
 
 
     # use first 25% of positions for fitting
-    # then divide by 2 and 2 (2D)
-    # still not sure why it is for in msd analsyzer, thought it was 4 step
-
-    # dstep=4
-
-
-    # copy trackll's structure
+   # copy trackll's structure
     D.coef=list()
     length(D.coef)=length(msd.list)
     names(D.coef)=names(msd.list)
@@ -241,14 +240,13 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 
 ##------------------------------------------------------------------------------
 ## rsquare.filter
+## r.squared >= 0.8 as quality control
+
 rsquare.filter=function(D.inst,static=TRUE){
 
     if (static==T){
-
-        # r.squared >= 0.8 as quality control
         #         slope=lapply(D.inst,function(x){x[rownames(x)=="slope"]})
         #         corr=lapply(D.inst,function(x){x[rownames(x)=="corr"]})
-
 
         #         slope=lapply(D.inst,function(x){x[colnames(x)=="slope"]})
         #         corr=lapply(D.inst,function(x){x[colnames(x)=="corr"]})
@@ -256,32 +254,14 @@ rsquare.filter=function(D.inst,static=TRUE){
         slope=lapply(D.inst,function(x){x[,"slope"]})
         corr=lapply(D.inst,function(x){x[,"corr"]})
 
-        corr.filter=lapply(corr,function(x){x>=0.8})
+        # the "still" molecule wil generate a NA in correlation, thus is.na(x)==F
+        corr.filter=lapply(corr,function(x){x>=0.8 & is.na(x)==F})
         D.inst.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
 
-#         D.inst.subset.slope=mapply("[",slope,corr.filter,SIMPLIFY=F)
-#
-#         D.inst.subset.corr=mapply("[",corr,corr.filter,SIMPLIFY=F)
-#
-#         merge(D.inst.subset.slope,D.inst.subset.corr)
-#
-#         D.inst.subset=list()
-#         for (i in 1:length(d)){
-#             D.inst.subset[[i]]=mapply("[",d[i],corr.filter,SIMPLIFY=T)
-#         }
-#         D.inst.subset
-
-
-
-
-    }else{
+   }else{
 
         # to varify the fit
         # fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
-
-        ## filter
-        ## filtration with r.squared
-        # r.squared >= 0.8 as quality control
 
         ## the next two filtration blocks maybe combined to increase efficiency,
         ## however for now the efficiency is secondary, let the logic stand
@@ -321,6 +301,7 @@ rsquare.filter=function(D.inst,static=TRUE){
         names(D.inst.subset)=names(D.inst)
 
     }
+
     ## filter without losing location information
     ## or filter in the last step, has to be replaced before log
     ## if corr <0.8, replace slope with NaN
