@@ -10,6 +10,9 @@
 ## calculate square displacement of a track/trajectory as a function of time/step
 ## data.frame has two column, x and y
 
+##' @export squareDisp
+## such a basic function that has been used in msd and cdf, need to export
+## add help page later TODO
 squareDisp=function(track,dt=1,resolution=0.107){
 
     # validity check for dt less than track length

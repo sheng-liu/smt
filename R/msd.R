@@ -349,20 +349,19 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                 theme(legend.title=element_blank())
 
             plot(msd.plot)
-
-            # output csv
-            if (output==T){
+        }
+        # output csv
+        if (output==T){
 
                 for (i in 1:length(trackll)){
                     fileName=paste("MSD individual-",
                                    .timeStamp(file.name[i]),".csv",sep="")
                     cat("\nOutput MSD for individual trajectories.\n")
                     write.csv(file=fileName,MSD[[i]])
-
                 }
 
             }
-        }
+
 
     }
     return(MSD)
