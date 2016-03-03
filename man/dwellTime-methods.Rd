@@ -2,15 +2,16 @@
 % Please edit documentation in R/dwellTime.R
 \docType{methods}
 \name{dwellTime}
+\alias{.dwellTime}
 \alias{dwellTime}
 \title{dwellTime}
 \usage{
-dwellTime(trackll,exposure=10,plot=F,output=F)
+dwellTime(trackll,exposure=10,x.scale=c(min=0,max=250),plot=F,output=F)
 }
 \arguments{
-\item{trackll}{Track list output from readDiatrack().}
-
 \item{exposure}{Exposure time, default = 10ms.}
+
+\item{trackll}{Track list output from readDiatrack().}
 
 \item{plot}{An Logical indicate if plot should be generated. If plot = TRUE, the plot data will also be output.}
 

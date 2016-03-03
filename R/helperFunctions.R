@@ -5,18 +5,6 @@
 
 
 
-##------------------------------------------------------------------------------
-## .dwellTime
-## a function to calculate dwell time from a list of data.frame track (trackl). and returns a vector of dwell time.
-
-## nomenclature
-## track    data.frame with x,y,z coordinates
-## trackl   list of data.frames with x,y,z coordinates, read from one track file
-## trackll  list of list of data.frames with x,y,z coordinates, read from multiple track file
-
-.dwellTime=function(trackl,exposure=10){
-    sapply(trackl,function(x){dim(x)[1]*exposure})
-}
 
 
 ##------------------------------------------------------------------------------

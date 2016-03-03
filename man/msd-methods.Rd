@@ -29,9 +29,10 @@ for detail.}
 \value{
 \itemize{
 \item{SummarizedMSD} MSD summarized over all trajectories as a function of
-dt. \item{InidvidualMSD} MSD of individual trajectories at specified dt. Row
-number corresponding to its dt. Notice only the trajectories that satisfies
-the specified dt is output, trajectories that does not satisfy (i.e.
+dt.
+
+\item{InidvidualMSD} MSD of individual trajectories at specified dt. Row
+number corresponding to its dt. Notice only the trajectories that satisfies the specified dt is output, trajectories that does not satisfy (i.e.
 trajectories satisfies 1:(dt-1)) is not output here.
 
 \item{StandardError} Standard Error of the sample mean measures the

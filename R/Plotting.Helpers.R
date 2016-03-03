@@ -15,7 +15,7 @@ plotHistogram=function(Log.D.inst,binwidth=0.5, method){
                            binwidth=binwidth,position="dodge")+
 
             geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
         plot(Dcoef.plot)
     }else if (method=="rolling.window"){
@@ -29,7 +29,7 @@ plotHistogram=function(Log.D.inst,binwidth=0.5, method){
                            binwidth=binwidth,position="dodge")+
 
             geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())+
             facet_grid(window.name ~ .)
 
@@ -37,7 +37,7 @@ plotHistogram=function(Log.D.inst,binwidth=0.5, method){
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
             geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
 
         multiplot(facet.plot,merged.plot,cols=2)
@@ -64,7 +64,7 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
             geom_histogram(aes(y = ..density..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
             geom_density(alpha = 0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
 
         plot(Dcoef.plot)
@@ -79,7 +79,7 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
                aes(x=Log.D.inst,group=file.name,
                    col=file.name,fill=file.name))+
             geom_density(alpha = 0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())+
             facet_grid(window.name ~ .)
 
@@ -87,7 +87,7 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
                aes(x=Log.D.inst,group=file.name,
                    col=file.name,fill=file.name))+
             geom_density(alpha = 0.2)+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
 
         ## could also add a merged without 1234
@@ -133,17 +133,17 @@ plotVariance=function(Log.D.inst,method){
     # plotting
     #     scatter=ggplot(data,aes(x=mean,y=sd,col=folder))+
     #         geom_point(alpha=0.8)+
-    #         theme_classic()+
+    #         theme_bw()+
     #         theme(legend.title=element_blank())
     #
     #     mean.density=ggplot(data,aes(x=mean,col=folder))+
     #         geom_density()+
-    #         theme_classic()+
+    #         theme_bw()+
     #         theme(legend.title=element_blank())
     #
     #     sd.density=ggplot(data,aes(x=sd,col=folder))+
     #         geom_density()+
-    #         theme_classic()+
+    #         theme_bw()+
     #         theme(legend.title=element_blank())
     #
     #     multiplot(scatter,mean.density,sd.density, cols=1)
@@ -151,7 +151,7 @@ plotVariance=function(Log.D.inst,method){
     # another implementation using gridExtra::grid.arrange
     scatter=ggplot(data,aes(x=mean,y=sd,col=folder))+
         geom_point(alpha=1,shape=21)+
-        theme_classic()+
+        theme_bw()+
         theme(legend.title=element_blank())+
         theme(legend.position=c(1,1),legend.justification=c(1,1))
 

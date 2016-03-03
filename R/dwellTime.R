@@ -10,7 +10,7 @@
 ##' @docType methods
 ##' @description Caclulate dwell time (/residence time) for trajecotries.
 
-##' @usage dwellTime(trackll,exposure=10,plot=F,output=F)
+##' @usage dwellTime(trackll,exposure=10,x.scale=c(min=0,max=250),plot=F,output=F)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param exposure Exposure time, default = 10ms.
 ##' @param plot An Logical indicate if plot should be generated. If plot = TRUE, the plot data will also be output.
@@ -34,7 +34,21 @@
 ###############################################################################
 
 
-dwellTime=function(trackll,exposure=10,plot=F,output=F){
+##------------------------------------------------------------------------------
+## .dwellTime
+## a function to calculate dwell time from a list of data.frame track (trackl). and returns a vector of dwell time.
+
+## nomenclature
+## track    data.frame with x,y,z coordinates
+## trackl   list of data.frames with x,y,z coordinates, read from one track file
+## trackll  list of list of data.frames with x,y,z coordinates, read from multiple track file
+
+.dwellTime=function(trackl,exposure=10){
+    sapply(trackl,function(x){dim(x)[1]*exposure})
+}
+
+
+dwellTime=function(trackll,exposure=10,x.scale=c(min=0,max=250),plot=F,output=F){
 
     ## compute dwell time
     dwell.time=sapply(trackll,function(x){.dwellTime(x,exposure)})
@@ -45,43 +59,27 @@ dwellTime=function(trackll,exposure=10,plot=F,output=F){
     ## reshape data for plot
     dwell.time.mlt=melt(dwell.time)
 
-    freqpoly=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_classic()+ theme(legend.title=element_blank())+xlim(0,200)
+
+    histo.plot=ggplot(dwell.time.mlt,
+           aes(x=value,group=L1,col=L1,fill=L1))+
+        geom_histogram(binwidth=exposure,position="dodge")+
+        xlim(x.scale["min"],x.scale["max"])+
+        theme_bw()+
+        theme(legend.title=element_blank())+
+        labs(x="Lifetime of trajectories (ms)", y="Number of trajecotries")
+
+    density.plot=ggplot(dwell.time.mlt,
+           aes(x=value,group=L1,col=L1,fill=L1))+
+        geom_density(alpha=0.2)+
+        xlim(x.scale["min"],x.scale["max"])+
+        theme_bw()+
+        theme(legend.title=element_blank())+
+        labs(x="Lifetime of trajectories (ms)", y="Frequency of trajectories")
+
+    # multiplot(histo.plot,density.plot,cols=1)
 
 
-#     histodensity=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_classic()+ theme(legend.title=element_blank())
-#
-#     histodensity=ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
-#     geom_histogram(aes(y = ..density..),
-#                    binwidth=exposure,position="dodge")+
-#         geom_density(alpha = 0.2)+
-#         labs(x="Dwell time (ms)", y="Frequency")+
-#         theme_classic()+
-#         theme(legend.title=element_blank())+
-#         xlim(0,200)
-#
-#
-#
-#     ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
-#         geom_density(alpha = 0.2)+
-#         labs(x="Dwell time (ms)", y="Count")+
-#         theme_classic()+
-#         theme(legend.title=element_blank())+
-#         xlim(0,200)
-#
-#
-#     ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
-#         geom_histogram(aes(y = ..count..),
-#                        binwidth=exposure,position="dodge")+
-#
-#         geom_density(aes(y=10*..count..),alpha=0.2)+
-#         theme_classic()+
-#         theme(legend.title=element_blank())+
-#         xlim(0,200)+
-#         ylim(0,50)
-
-
-
-    if (plot==T) plot(freqpoly)
+    if (plot==T) multiplot(histo.plot,density.plot,cols=1)
 
     ## output
     if (output==T){
@@ -107,8 +105,16 @@ dwellTime=function(trackll,exposure=10,plot=F,output=F){
 
 
 ##-----------------------------------------------------------------------------
-## TODO:
+##
 
+# freqpoly=ggplot(dwell.time.mlt,aes(x=value,color=L1)) + geom_freqpoly(binwidth=exposure)+labs(x="Dwell time (ms)", y="Count")+theme_bw()+ theme(legend.title=element_blank())+xlim(0,200)
+
+#     histodensity=ggplot(dwell.time.mlt,aes(x=value,color=L1,fill=L1))+
+#         geom_histogram(binwidth=exposure,position="dodge")+
+#         geom_density(aes(y=10*..count..),alpha=0.2)+
+#         theme_bw()+
+#         theme(legend.title=element_blank())+
+#         xlim(0,200)
 
 
 

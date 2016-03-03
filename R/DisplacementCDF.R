@@ -21,14 +21,14 @@
 ##'   for detail.
 
 ##' @return
-
 ##' \itemize{
-##' \item{data} A list of displacements of individual trajecotries at specified dt. the name of the list is the Diatrack file name.
+##' \item{ list of "stepwise.displacement" and "cdf.displacement",} {A list of stepwise.displacement" and "cdf.displacement". the name of the list is the Diatrack folder name.}
 ##'
-##' \item{output file} displacement of individual trajectoreis at specified dt
+##' \item{Output file,} {Displacement of individual trajectoreis at specified dt.}
 ##'
 ##'
-##' \item{CDF plot} CDF plot of displacement for individual files.
+##' \item{CDF plot,} {CDF plot of displacement for individual files.
+##' }
 ##' }
 
 
@@ -237,44 +237,83 @@ displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F){
     p=melt(dp.dt)
 
     ## plotting
-    if (plot==T){
+
         ecdf=ggplot(p,aes(x=value,group=L1,colour=L1))+stat_ecdf()+
             labs(x="Displacement (µm)",y="CDF")+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
-
+        # can use stat_ecdf(pad=F) to remove first -Inf and Inf dded on x in ggplot2::stat_cdf, however it seems not working in current version ggplot2 2.1.10, remove it manually in "preprocessing of data for output"
 
         histogram=ggplot(p,aes(x=value,group=L1,colour=L1))+geom_density()+
             labs(x="Displacement (µm)",y="Density")+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
-
+        if (plot==T){
         multiplot(ecdf,histogram,cols=1)
-
     }
 
     ## output
     file.name=names(trackll)
-    data=lapply(dp.dt,melt)
+    stepwise.displacement=lapply(dp.dt,melt)
+
+    data=ggplot_build(ecdf)$data[[1]]
+
+    ## preprocess the data before output
+
+    dat=with(data,data.frame(y,x,group))
+
+    # remove Inf
+    dat=dat[!is.infinite(dat$x),]
+    # make it a list
+    cdf.displacement=split(dat,f=dat$group)
+    # name the list
+    # the order of the grouping in ggplot2 is sorted by factor,
+    # so group 1 is levels(factor(c("SWR1","HTZ1")))[1]
+    #     > levels(factor(c("SWR1","HTZ1")))
+    #     [1] "HTZ1" "SWR1"
+    name.cdf.displacement=levels(factor(names(stepwise.displacement)))
+    names(cdf.displacement)=name.cdf.displacement
+
+    # format output by removing group column and renaming x,y column
+    cdf.displacement=lapply(cdf.displacement,function(x) {
+
+        x$group=NULL
+        names(x)=c("CDF","UniqueDisplacement")
+        return(x)})
 
 
-    for (i in 1:length(data)){
-        data[[i]]["L2"]=NULL
-        colnames(data[[i]])=c("Displacement","TrackIndex")
+
+    for (i in 1:length(stepwise.displacement)){
+        stepwise.displacement[[i]]["L2"]=NULL
+        colnames(stepwise.displacement[[i]])=c("StepwiseDisplacement","TrackIndex")
     }
 
     if (output==T){
 
-        for (i in 1:length(data)){
-            fileName=paste("Displacement-",
+        for (i in 1:length(stepwise.displacement)){
+            fileName=paste("StepwiseDisplacement-",
                            .timeStamp(file.name[i]),"....csv",sep="")
-            cat("\nOutput Displacement for",file.name[i],"\n")
-            write.csv(file=fileName,data[[i]],row.names = F)
+            cat("\nOutput StepwiseDisplacement for",file.name[i],"\n")
+            write.csv(file=fileName,stepwise.displacement[[i]],row.names = F)
+        }
+
+        for (i in 1:length(cdf.displacement)){
+            fileName=paste("CDFDisplacement-",
+                           .timeStamp(file.name[i]),"....csv",sep="")
+            cat("\nOutput CDFDisplacement for",file.name[i],"\n")
+            write.csv(file=fileName,cdf.displacement[[i]],row.names = F)
         }
 
     }
 
-    return(data)
+    output.lst=list(stepwise.displacement,cdf.displacement)
+    names(output.lst)=c("stepwise.displacement","cdf.displacement")
+
+
+    return(output.lst)
+
 }
 
-
+## -----
+# TODO: output dat V
+# TODO: base:ecdf 1228 seems to be more accurate as ggplot2::stat_ecdf also have two outside values, one is negative at zero, the other is extra 1 at the end, which should be removed.  V
