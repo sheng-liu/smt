@@ -64,7 +64,7 @@ CDF=function(trackll,dt){
 
     ecdf=ggplot(p,aes(x=value,group=L1,colour=L1))+stat_ecdf()+
         labs(x="MSD",y="eCDF")+
-        theme_classic()+
+        theme_bw()+
         theme(legend.title=element_blank())
 
     plot(ecdf)
@@ -81,7 +81,7 @@ CDF=function(trackll,dt){
 #         labs(xlab="dt",ylab="Cumulative MSD")
 #
 #     +
-#         theme_classic()+
+#         theme_bw()+
 #         theme(legend.title=element_blank())
 
     return(ecdf)

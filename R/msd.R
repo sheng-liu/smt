@@ -311,7 +311,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
             geom_errorbar(aes(ymin=SummarizedMSD-StandardError,
                               ymax=SummarizedMSD+StandardError), width=.1)+
             labs(x="Time intervals (10ms)", y="SummarizedMSD (µm^2)")+
-            theme_classic()+
+            theme_bw()+
             theme(legend.title=element_blank())
 
 
@@ -346,7 +346,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                                   col=file.name))+
                 geom_line()+
                 labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
-                theme_classic()+
+                theme_bw()+
                 theme(legend.title=element_blank())
 
             plot(msd.plot)
@@ -425,7 +425,7 @@ msd.vecdt=function(trackll,vecdt=NULL,resolution=0.107,filter=c(min=7,max=Inf),o
 #                           col=file.name))+
 #         geom_line()+
 #         labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
-#         theme_classic()+
+#         theme_bw()+
 #         theme(legend.title=element_blank())
 
 
