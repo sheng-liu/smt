@@ -11,13 +11,15 @@
 ##'   trajecotries.
 ##'
 ##' @usage
-##' Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
+##' Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
+##' @param filter a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.
+##' @param rsquare rsquare filtration on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filtration is not desired.
 ##' @param resolution ratio of pixel to µM.
 ##' @param lag.start time lag used as start of dt for compute Dcoef.
 ##' @param lag.end Time lag used as end of dt for compute Dcoef.
-##' @param filter An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).
+
 ##'
 ##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidth; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.
 ##'
@@ -37,13 +39,14 @@
 ##' # compare files
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
-##' Dcoef(trackll,plot="density")
+##' Dcoef(trackll,method="static",plot="density")
 ##'
 ##' # compare folders
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
-##' trackll=compareFolder(c(folder1,folder2))
-##' Dcoef(trackll,plot="variance")
+##' trackll2=compareFolder(c(folder1,folder2))
+##' Dcoef(trackll2,method="rolling.window",plot="histogram")
+##' Dcoef(trackll2,method="rolling.window",plot="variance")
 
 ##' @export Dcoef
 ###############################################################################
@@ -52,7 +55,7 @@
 
 
 Dcoef=function(
-    trackll,dt=6,filter=c(min=7,max=Inf),resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01){
+    trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01){
 
 
 ##------------------------------------------------------------------------------
@@ -82,20 +85,23 @@ Dcoef=function(
                MSD=msd(trackll,dt=dt,resolution=resolution,
                        filter=filter,summarize=F)
 
-               # calculate Dcoef using rolling window
-               D.coef=Dcoef.static(MSD,lag.start=lag.start,lag.end=lag.end,t.interval=t.interval)
+               # calculate Dcoef using static
+               D.coef=Dcoef.static(MSD,lag.start=lag.start,lag.end=lag.end,
+                                   t.interval=t.interval)
            },
            rolling.window={
-               cat("\napplying rolling window,
-                   filter swtiched on\n")
-               static=F
-               window.size=4
 
-               # calculate MSD
-               MSD=msd(trackll,dt=dt,resolution=resolution,
-                       filter=filter,summarize=F)
-               # calculate Dcoef using rolling window
-               D.coef=Dcoef.roll(MSD,window.size=window.size,t.interval=t.interval)
+               cat("\nrolling.window method is currently under modification...\n")
+#                cat("\napplying rolling window,
+#                    filter swtiched on\n")
+#                static=F
+#                window.size=4
+#
+#                # calculate MSD
+#                MSD=msd(trackll,dt=dt,resolution=resolution,
+#                        filter=filter,summarize=F)
+#                # calculate Dcoef using rolling window
+#                D.coef=Dcoef.roll(MSD,window.size=window.size,t.interval=t.interval)
 
            },
            percentage={
@@ -140,7 +146,14 @@ Dcoef=function(
 #
 #     }
 
-    D.coef.subset=rsquare.filter(D.coef,static=static)
+    #if (length(rsquare)!=0){
+#         D.coef.subset=rsquare.filter(D.coef,rsquare=rsquare,static=static)
+#     }else{
+#         D.coef.subset=D.coef
+#     }
+
+
+    D.coef.subset=rsquare.filter(D.coef,rsquare=rsquare,static=static)
     Log.D.coef=Dcoef.log(D.coef.subset,static=static)
 
 
@@ -152,7 +165,7 @@ Dcoef=function(
            variance={
                if (method=="static"||method=="percentage"){
 
-                   cat("variance plot for method static and percentage not available for smt v0.2 \n")
+                   cat("\n\nvariance plot for method static and percentage not available for smt v0.2 \n\n")
 
 #                    cat("variance plot for method static and percentage does not use rsquare filter. \n")
 #                    Log.D.coef.nofilter=Dcoef.log(D.coef,static=T)

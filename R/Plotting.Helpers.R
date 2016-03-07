@@ -2,29 +2,39 @@
 
 ##------------------------------------------------------------------------------
 ## plotHistogram
-plotHistogram=function(Log.D.inst,binwidth=0.5, method){
-    p=reshape2::melt(Log.D.inst)
+plotHistogram=function(Log.D.coef,binwidth=0.5, method){
+    p=reshape2::melt(Log.D.coef)
 
     if (method=="static"||method=="percentage"){
 
-        colnames(p)=c("Log.D.inst","file.name")
+        colnames(p)=c("Log.D.coef","file.name")
 
         # overlay histogram and density plot without changing count as y axies
-        Dcoef.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+        Dcoef.plot=ggplot(p,aes(x=Log.D.coef,group=file.name,col=file.name))+
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
 
             geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
             theme_bw()+
             theme(legend.title=element_blank())
+
+        # add visual aid for actual D.coef
+        xbreaks=cbreaks(range=c(min(p$Log.D.coef,na.rm=T),
+                                max(p$Log.D.coef,na.rm=T)))
+
+        #xbreaks$labels=paste(xbreaks$breaks,10^(xbreaks$breaks),sep="\n")
+
+        lab=paste("(",round(10^(xbreaks$breaks),digits=2),")",sep="")
+        xbreaks$labels=paste(xbreaks$breaks,lab,sep="\n")
+
+        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,labels=xbreaks$labels)
+
         plot(Dcoef.plot)
     }else if (method=="rolling.window"){
 
+        colnames(p)=c("Log.D.coef","window.name","file.name")
 
-
-        colnames(p)=c("Log.D.inst","window.name","file.name")
-
-        facet.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+        facet.plot=ggplot(p,aes(x=Log.D.coef,group=file.name,col=file.name))+
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
 
@@ -33,7 +43,7 @@ plotHistogram=function(Log.D.inst,binwidth=0.5, method){
             theme(legend.title=element_blank())+
             facet_grid(window.name ~ .)
 
-        merged.plot=ggplot(p,aes(x=Log.D.inst,group=file.name,col=file.name))+
+        merged.plot=ggplot(p,aes(x=Log.D.coef,group=file.name,col=file.name))+
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
             geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
@@ -50,16 +60,16 @@ plotHistogram=function(Log.D.inst,binwidth=0.5, method){
 
 ##------------------------------------------------------------------------------
 ## plotDensity
-plotDensity=function(Log.D.inst,binwidth=0.5,method){
+plotDensity=function(Log.D.coef,binwidth=0.5,method){
 
-    p=reshape2::melt(Log.D.inst)
+    p=reshape2::melt(Log.D.coef)
 
 
     if (method=="static"||method=="percentage"){
-        colnames(p)=c("Log.D.inst","file.name")
 
+        colnames(p)=c("Log.D.coef","file.name")
         Dcoef.plot=ggplot(p,
-                          aes(x=Log.D.inst,group=file.name,
+                          aes(x=Log.D.coef,group=file.name,
                               col=file.name,fill=file.name))+
             geom_histogram(aes(y = ..density..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
@@ -67,16 +77,25 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
             theme_bw()+
             theme(legend.title=element_blank())
 
+        xbreaks=cbreaks(range=c(min(p$Log.D.coef,na.rm=T),max(p$Log.D.coef,na.rm=T)))
+
+         #xbreaks$labels=paste(xbreaks$breaks,10^(xbreaks$breaks),sep="\n")
+
+        lab=paste("(",round(10^(xbreaks$breaks),digits=2),")",sep="")
+        xbreaks$labels=paste(xbreaks$breaks,lab,sep="\n")
+
+        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,labels=xbreaks$labels)
+
         plot(Dcoef.plot)
 
 
     }else if (method=="rolling.window"){
 
-        colnames(p)=c("Log.D.inst","window.name","file.name")
+        colnames(p)=c("Log.D.coef","window.name","file.name")
 
         # a perfect case for faceting
         facet.plot=ggplot(p,
-               aes(x=Log.D.inst,group=file.name,
+               aes(x=Log.D.coef,group=file.name,
                    col=file.name,fill=file.name))+
             geom_density(alpha = 0.2)+
             theme_bw()+
@@ -84,7 +103,7 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
             facet_grid(window.name ~ .)
 
         merged.plot=ggplot(p,
-               aes(x=Log.D.inst,group=file.name,
+               aes(x=Log.D.coef,group=file.name,
                    col=file.name,fill=file.name))+
             geom_density(alpha = 0.2)+
             theme_bw()+
@@ -101,22 +120,22 @@ plotDensity=function(Log.D.inst,binwidth=0.5,method){
 }
 
 # ggplot(p,
-#        aes(x=Log.D.inst))+
+#        aes(x=Log.D.coef))+
 #     geom_density()
 
 ##------------------------------------------------------------------------------
 ## plotVariance
-plotVariance=function(Log.D.inst,method){
+plotVariance=function(Log.D.coef,method){
 
         cat("generating variance plot \n")
 
     ## plot data preparation
-    ## plot mean of Log.D.inst of each individual trajectory, against variance of each individual trajectory
+    ## plot mean of Log.D.coef of each individual trajectory, against variance of each individual trajectory
 
     # when the list have same length, it maybe easier to work with when converted into data.frame
 
-    Log.D.inst.df=do.call(rbind.data.frame,Log.D.inst)
-    MEAN=data.frame(apply(Log.D.inst.df,1,mean,na.rm=T))
+    Log.D.coef.df=do.call(rbind.data.frame,Log.D.coef)
+    MEAN=data.frame(apply(Log.D.coef.df,1,mean,na.rm=T))
 
     folder=c()
     for (i in 1:dim(MEAN)[1])
@@ -125,7 +144,7 @@ plotVariance=function(Log.D.inst,method){
     colnames(MEAN)=c("mean","folder")
 
 
-    SD=data.frame(apply(Log.D.inst.df,1,sd,na.rm=T))
+    SD=data.frame(apply(Log.D.coef.df,1,sd,na.rm=T))
     colnames(SD)=c("sd")
 
     data=cbind(MEAN,SD)
@@ -186,35 +205,35 @@ plotVariance=function(Log.D.inst,method){
 
 
     # this would have worked if mapply takes na.rm=T
-    # mapply(mean,Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]],na.rm=T)
+    # mapply(mean,Log.D.coef[[1]][[1]],Log.D.coef[[1]][[2]],na.rm=T)
 
 
     # or this one
-    # mapply(function(x){mean(x,na.rm=T)},Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]])
+    # mapply(function(x){mean(x,na.rm=T)},Log.D.coef[[1]][[1]],Log.D.coef[[1]][[2]])
 
     # this means mapply is not taking the elements of each list into one vector, but used them as seperate
 
 
     # used alternative, concatanate, then apply
-    #             C=mapply("c",Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]])
+    #             C=mapply("c",Log.D.coef[[1]][[1]],Log.D.coef[[1]][[2]])
     #
     #
     #
     #             apply(C,2,mean,na.rm=T)
     #             mapply(mean,a,b)
     #
-    #             lapply(Log.D.inst[[1]])
+    #             lapply(Log.D.coef[[1]])
     #
     #         }
     #
-    #         mapply(mean,Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]],na.rm=T)
+    #         mapply(mean,Log.D.coef[[1]][[1]],Log.D.coef[[1]][[2]],na.rm=T)
     #         mapply(function(x){mean(x,na.rm=T)},
-    #                      Log.D.inst[[1]][[1]],Log.D.inst[[1]][[2]])
+    #                      Log.D.coef[[1]][[1]],Log.D.coef[[1]][[2]])
     #
     #         mapply()
     #
     #         # collapse sublist rolling windowns into uper level list
-    #         Log.D.inst=lapply(Log.D.inst,unlist)
+    #         Log.D.coef=lapply(Log.D.coef,unlist)
 
 }
 

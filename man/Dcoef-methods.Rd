@@ -5,14 +5,16 @@
 \alias{Dcoef}
 \title{Dcoef}
 \usage{
-Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
+Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
 
 \item{dt}{Time intervals.}
 
-\item{filter}{An logical indicate if frames less than specified time interval (< = dt) should be filtered out (i.e. Take only trajectories that have number of frames > dt).}
+\item{filter}{a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.}
+
+\item{rsquare}{rsquare filtration on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filtration is not desired.}
 
 \item{resolution}{ratio of pixel to µM.}
 
@@ -47,12 +49,13 @@ Generic parameters (parameter applied to all methods, such as resolution etc) ar
 # compare files
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-Dcoef(trackll,plot="density")
+Dcoef(trackll,method="static",plot="density")
 
 # compare folders
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
-trackll=compareFolder(c(folder1,folder2))
-Dcoef(trackll,plot="variance")
+trackll2=compareFolder(c(folder1,folder2))
+Dcoef(trackll2,method="rolling.window",plot="histogram")
+Dcoef(trackll2,method="rolling.window",plot="variance")
 }
 

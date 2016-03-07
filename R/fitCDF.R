@@ -40,7 +40,7 @@
 ##' @import minpack.lm
 ###############################################################################
 
-
+## dt needs to be avariable in this equation so it is flexible and has a meaning to its unit um/s
 
 # ------------------------------------------------------------------------------
 # one component fit

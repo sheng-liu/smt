@@ -22,7 +22,7 @@ Dcoef.static=function(MSD,lag.start=2,lag.end=5,t.interval=0.010){
 
     cat("lag.start  ",lag.start,"\t","lag.end  ",lag.end,"\n")
 
-    #  linear fitting of the MSD curves between time dt 2 and 5
+    # linear fitting of the MSD curves between dt 2 and 5
     x=(lag.start:lag.end)*t.interval
     dimension=2
 
@@ -240,10 +240,12 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 
 ##------------------------------------------------------------------------------
 ## rsquare.filter
-## r.squared >= 0.8 as quality control
+## r.squared >= rsquaae as quality control
 
-rsquare.filter=function(D.inst,static=TRUE){
+rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
 
+
+    cat("\napplying r square filter...",rsquare,"\n")
     if (static==T){
         #         slope=lapply(D.inst,function(x){x[rownames(x)=="slope"]})
         #         corr=lapply(D.inst,function(x){x[rownames(x)=="corr"]})
@@ -255,7 +257,7 @@ rsquare.filter=function(D.inst,static=TRUE){
         corr=lapply(D.inst,function(x){x[,"corr"]})
 
         # the "still" molecule wil generate a NA in correlation, thus is.na(x)==F
-        corr.filter=lapply(corr,function(x){x>=0.8 & is.na(x)==F})
+        corr.filter=lapply(corr,function(x){x>=rsquare & is.na(x)==F})
         D.inst.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
 
    }else{
@@ -272,11 +274,11 @@ rsquare.filter=function(D.inst,static=TRUE){
         D.inst.subset=list()
         for (i in 1:length(D.inst)){
 
-            # r.squared >= 0.8 as quality control
+            # r.squared >= rsquare as quality control
             slope=lapply(D.inst[[i]],function(x){x[,"slope"]})
             corr=lapply(D.inst[[i]],function(x){x[,"corr"]})
 
-            #corr.filter=lapply(corr,function(x){x>=0.8})
+            #corr.filter=lapply(corr,function(x){x>=rsquare})
             #D.inst.subset[[i]]=mapply("[",slope,corr.filter)
 
 
@@ -290,7 +292,7 @@ rsquare.filter=function(D.inst,static=TRUE){
             ## alternative  works
             for (m in 1:length(corr)){
                 for (n in 1:length(corr[[m]])){
-                    if (corr[[m]][n]<0.8)
+                    if (corr[[m]][n]<rsquare)
                         slope[[m]][n]=NaN
                 }
             }
@@ -304,7 +306,7 @@ rsquare.filter=function(D.inst,static=TRUE){
 
     ## filter without losing location information
     ## or filter in the last step, has to be replaced before log
-    ## if corr <0.8, replace slope with NaN
+    ## if corr <rsquare, replace slope with NaN
 
     ## alternative
     #     for (i in 1: length(D.inst)){
@@ -315,7 +317,7 @@ rsquare.filter=function(D.inst,static=TRUE){
     #             for (k in 1:dim(D.inst[[i]][[j]])[2]){
     #
     #
-    #                 if (D.inst[[i]][[j]][,k]["corr"]<0.8)
+    #                 if (D.inst[[i]][[j]][,k]["corr"]<rsquare)
     #                     D.inst[[i]][[j]][,k]["slope"]=NaN
     #
     #             }
@@ -332,7 +334,8 @@ Dcoef.log=function(D.inst.subset,static=T){
     if (static){
 
         #Log.D.inst=suppressWarnings(lapply(D.inst,log))
-        Log.D.inst=lapply(D.inst.subset,log)
+        # worth noting "log computes logarithms, by default natural logarithms"
+        Log.D.inst=lapply(D.inst.subset,log10)
 
         # remove NaN if wanted
         # Log.D.inst=lapply(Log.D.inst, function(x){
