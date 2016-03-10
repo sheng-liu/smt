@@ -5,7 +5,7 @@
 \alias{Dcoef}
 \title{Dcoef}
 \usage{
-Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
+Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=NULL,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01,profile=NULL)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -18,7 +18,7 @@ Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidt
 
 \item{resolution}{ratio of pixel to µM.}
 
-\item{binwidth}{binwidth used for histogram, default 0.5.}
+\item{binwidth}{binwidth used for histogram, default 0.5. Set to NULL to automatically assign binwidth to range(x)/30.}
 
 \item{plot}{A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidth; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.}
 
@@ -26,6 +26,8 @@ Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidt
 for detail.}
 
 \item{t.interval}{time interval between frames, default 0.010 s (10ms).}
+
+\item{profile}{Location of preference file. By default (NULL), it is stored at : system.file("extdata","PREF","profile.csv",package="smt"). User can provide preference file by specifying the location of the file, e.g. profile="/Users/shengliu/Desktop/profile.csv".}
 
 \item{lag.start}{time lag used as start of dt for compute Dcoef.}
 

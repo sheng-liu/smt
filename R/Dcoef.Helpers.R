@@ -124,6 +124,8 @@ Dcoef.roll=function(MSD,window.size=4,t.interval=0.010){
 
 Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), resolution=0.107,t.interval=0.010){
 
+
+    cat("\napplying percentage,",percentage,"\n")
     ## filtration of tracks using filter
     trackll=filtration(trackll,filter=filter)
 
@@ -242,6 +244,7 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 ## rsquare.filter
 ## r.squared >= rsquaae as quality control
 
+##'@export rsquare.filter
 rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
 
 
@@ -329,7 +332,7 @@ rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
 
 ##------------------------------------------------------------------------------
 ## Dcoef.log
-
+##'@export Dcoef.log
 Dcoef.log=function(D.inst.subset,static=T){
     if (static){
 

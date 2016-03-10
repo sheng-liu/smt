@@ -1,6 +1,17 @@
 ## plotting helpers
 
 ##------------------------------------------------------------------------------
+## automate binwidth
+auto.binwidth=function(x){
+    x=x[is.na(x)==F]
+    xrange=range(x)
+    nbins=median(c(nclass.Sturges(x),nclass.scott(x),nclass.FD(x)))
+    binwidth=(xrange[2]-xrange[1])/nbins
+    cat("auto binwidth =",binwidth,"\n")
+    return(binwidth)
+}
+
+##------------------------------------------------------------------------------
 ## plotHistogram
 plotHistogram=function(Log.D.coef,binwidth=0.5, method){
     p=reshape2::melt(Log.D.coef)
@@ -9,12 +20,16 @@ plotHistogram=function(Log.D.coef,binwidth=0.5, method){
 
         colnames(p)=c("Log.D.coef","file.name")
 
+        # auto binwidth
+        if (is.null(binwidth)) binwidth=auto.binwidth(p$Log.D.coef)
+
         # overlay histogram and density plot without changing count as y axies
         Dcoef.plot=ggplot(p,aes(x=Log.D.coef,group=file.name,col=file.name))+
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
 
-            geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            # geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            # geom_density(aes(y=binwidth*..count..,fill=file.name),alpha=0.2)+
             theme_bw()+
             theme(legend.title=element_blank())
 
@@ -38,7 +53,9 @@ plotHistogram=function(Log.D.coef,binwidth=0.5, method){
             geom_histogram(aes(y = ..count..,fill=file.name),
                            binwidth=binwidth,position="dodge")+
 
-            geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            # geom_density(aes(y=0.5*..count..,fill=file.name),alpha=0.2)+
+            # this dynamic binwidth does not work
+            # geom_density(aes(y=binwidth*..count..,fill=file.name),alpha=0.2)+
             theme_bw()+
             theme(legend.title=element_blank())+
             facet_grid(window.name ~ .)
@@ -64,16 +81,24 @@ plotDensity=function(Log.D.coef,binwidth=0.5,method){
 
     p=reshape2::melt(Log.D.coef)
 
-
     if (method=="static"||method=="percentage"){
 
+
         colnames(p)=c("Log.D.coef","file.name")
+
+        # auto binwidth
+        if (is.null(binwidth)) binwidth=auto.binwidth(p$Log.D.coef)
+
         Dcoef.plot=ggplot(p,
-                          aes(x=Log.D.coef,group=file.name,
-                              col=file.name,fill=file.name))+
+                          aes(x=Log.D.coef,
+                              group=file.name,
+                              # col=file.name,
+                              fill=file.name))+
             geom_histogram(aes(y = ..density..,fill=file.name),
-                           binwidth=binwidth,position="dodge")+
-            geom_density(alpha = 0.2)+
+                           colour="white",
+                           binwidth=binwidth,
+                           position="dodge")+
+            geom_density(aes(y = ..density..,col=file.name),alpha = 0.2)+
             theme_bw()+
             theme(legend.title=element_blank())
 
@@ -92,6 +117,9 @@ plotDensity=function(Log.D.coef,binwidth=0.5,method){
     }else if (method=="rolling.window"){
 
         colnames(p)=c("Log.D.coef","window.name","file.name")
+
+        # auto binwidth
+        if (is.null(binwidth)) binwidth=auto.binwidth(p$Log.D.coef)
 
         # a perfect case for faceting
         facet.plot=ggplot(p,

@@ -11,7 +11,7 @@
 ##'   trajecotries.
 ##'
 ##' @usage
-##' Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01)
+##' Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=NULL,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01,profile=NULL)
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
 ##' @param filter a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.
@@ -23,10 +23,12 @@
 ##'
 ##' @param plot A parameter for plotting. "none" (default), no plot; "histogram", plots histogram with count information, binwidth can be set through parameter binwidth; "density", plots density/frequency; "variance", plots mean and standard deviation of all trajectories, in this mode, rolling window calculaton of Dcoef is applied and filter is on.
 ##'
-##' @param binwidth binwidth used for histogram, default 0.5.
+##' @param binwidth binwidth used for histogram, default 0.5. Set to NULL to automatically assign binwidth to range(x)/30.
 ##' @param output An Logical indicate if output should be generated. See Values
 ##'   for detail.
 ##' @param t.interval time interval between frames, default 0.010 s (10ms).
+##' @param profile Location of preference file. By default (NULL), it is stored at : system.file("extdata","PREF","profile.csv",package="smt"). User can provide preference file by specifying the location of the file, e.g. profile="/Users/shengliu/Desktop/profile.csv".
+##'
 ##' @return
 ##' \itemize{
 ##' \item{Dcoef} A list of Dcoef for each file in trackll.
@@ -45,8 +47,9 @@
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll2=compareFolder(c(folder1,folder2))
-##' Dcoef(trackll2,method="rolling.window",plot="histogram")
-##' Dcoef(trackll2,method="rolling.window",plot="variance")
+##' Dcoef(trackll2,method="percentage",plot="histogram")
+## Dcoef(trackll2,method="rolling.window",plot="histogram")
+## Dcoef(trackll2,method="rolling.window",plot="variance")
 
 ##' @export Dcoef
 ###############################################################################
@@ -55,7 +58,7 @@
 
 
 Dcoef=function(
-    trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=0.5,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01){
+    trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=NULL,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01,profile=NULL){
 
 
 ##------------------------------------------------------------------------------
@@ -64,10 +67,15 @@ Dcoef=function(
     ## read in preference parameters
     ## these are some method dependent parameters, the generic parameters (parameter applied to all methods) are set in the function
 
-    profile=system.file("extdata","PREF","profile.csv",package="smt")
+    ## enable user provided preference file
+    if (is.null(profile)){
+        profile=system.file("extdata","PREF","profile.csv",package="smt")
+    }
+
     PARAM=read.csv(file=profile,header=T,row.names="PARAMETER")
     lag.start=PARAM["lag.start",]
     lag.end=PARAM["lag.end",]
+    perc=PARAM["percentage",]
     # binwidth=PARAM["binwidth",]
     ## TODO: set binwidth automatic to 1/30 of x scale
 
@@ -91,7 +99,7 @@ Dcoef=function(
            },
            rolling.window={
 
-               cat("\nrolling.window method is currently under modification...\n")
+               stop("\nrolling.window method is currently under modification...\n")
 #                cat("\napplying rolling window,
 #                    filter swtiched on\n")
 #                static=F
@@ -105,10 +113,10 @@ Dcoef=function(
 
            },
            percentage={
-               cat("\napplying percentage,")
+
                static=T
 
-               D.coef=Dcoef.perc(trackll,percentage=0.25,weighted=F,
+               D.coef=Dcoef.perc(trackll,percentage=perc,weighted=F,
                                  filter=filter, resolution=resolution,
                                  t.interval=t.interval)
 
