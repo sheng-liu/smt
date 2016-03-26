@@ -5,7 +5,10 @@
 \alias{Dcoef}
 \title{Dcoef}
 \usage{
-Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,binwidth=NULL,method=c("static","rolling.window","percentage"),plot=c("none","histogram","density","variance"),output=F,t.interval=0.01,profile=NULL)
+Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,
+       binwidth=NULL,method=c("static","rolling.window","percentage"),
+       plot=c("none","histogram","density","variance"),output=F,
+       t.interval=0.01,profile=NULL)
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -57,7 +60,6 @@ Dcoef(trackll,method="static",plot="density")
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll2=compareFolder(c(folder1,folder2))
-Dcoef(trackll2,method="rolling.window",plot="histogram")
-Dcoef(trackll2,method="rolling.window",plot="variance")
+Dcoef(trackll2,method="percentage",plot="histogram")
 }
 

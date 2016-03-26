@@ -22,7 +22,7 @@
 
 ##' @return
 ##' \itemize{
-##' \item{ list of "stepwise.displacement" and "cdf.displacement",} {A list of stepwise.displacement" and "cdf.displacement". the name of the list is the Diatrack folder name.}
+##' \item{ list of "stepwise.displacement" and "CDF.displacement",} {A list of stepwise.displacement" and "CDF.displacement". the name of the list is the Diatrack folder name.}
 ##'
 ##' \item{Output file,} {Displacement of individual trajectoreis at specified dt.}
 ##'
@@ -56,8 +56,8 @@
 ##------------------------------------------------------------------------------
 ## displacement.track
 ## displacement for a single data.frame
-
-displacement.track=function(track,dt=6,resolution=0.107){
+##' @export displacement.track
+displacement.track=function(track,dt=6,resolution=0.107,bivar=F){
 
     # validity check for dt less than track length
     if (dt >(dim(track)[1]-1)){
@@ -68,45 +68,56 @@ displacement.track=function(track,dt=6,resolution=0.107){
     # instead of stop, calculate the maximum steps
     # cat("Time interval (dt) greater than track length-1, calculating the maximum time interval")
 
-
-
     # summarize displacement for track at all dt
     # note this function calculates only "at" all dt
-    displacement.dt.track=list()
-    for (i in 1:dt){
-
-        #track.sqd=squareDisp(track,dt=i,resolution=resolution)
+    # displacement.dt.track=list()
+    # for (i in 1:dt){
 
         # at each dt, there are dt number of sub-trajectory/sub-tracks
         # displacement of dt-wise sub-trajectories/ step-wise sub tracks
 
         # caculate displacement for track at specified dt
 
-        track.sqd=squareDisp(track,dt=i,resolution=resolution)
+        track.sqd=squareDisp(track,dt=dt,resolution=resolution)
         track.disp=lapply(track.sqd,function(x){
             x["square.disp"]=sqrt(x["square.disp"])
-            colnames(x)=c("x","y","z","index","displacement")
+
+            # specifically change the modified column name
+            colnames(x)[which(colnames(x)=="square.disp")]="displacement"
             return(x)
         })
 
-
         # pull all the displacement at this dt together
-        displacement=do.call(rbind,track.disp)$displacement
-        displacement=displacement[!is.na(displacement)]
+        # displacement=do.call(rbind,track.disp)$displacement
 
-        # at each dt, there is length(track)-dt number of displacement
-        # for an 11 step track, dt=1, 10 displacment
-        # dt=2, 9 displacement
-        # dt=3, 8 displacement
-        # ...
-        # dt=10, 1 displacement
+        if(bivar==T){
 
+            # get the displacement at that dt
+            displacement=track.disp[[dt]]["displacement"]
+            displacement=displacement[!is.na(displacement)]
 
+            # at each dt, there is length(track)-dt number of displacement
+            # for an 11 step track, dt=1, 10 displacment
+            # dt=2, 9 displacement
+            # dt=3, 8 displacement
+            # ...
+            # dt=10, 1 displacement
+
+            # get the bivariate dx & dy at that dt
+            bivariate=cbind(track.disp[[dt]]["dx"],track.disp[[dt]]["dy"])
+            bivariate=bivariate[complete.cases(bivariate),]
+
+            return(bivariate)
+
+        }
         # put the displacement into a list as it has different length
-        displacement.dt.track[[i]]=displacement
+        # displacement.dt.track[[i]]=displacement
 
-
-    }
+        # to be compatible, get the displacement into a list
+        displacement.dt.track=lapply(track.disp,function(x){
+            d=x$displacement
+            d=d[!is.na(d)]})
+    #}
 
     return(displacement.dt.track)
 }
@@ -116,7 +127,7 @@ displacement.track=function(track,dt=6,resolution=0.107){
 ## calculate displacement for a list of data.frame
 
 ## calculate displacement.track for trackl (list of data.frame) one level
-displacement.trackl=function(trackl,dt=6,resolution=0.107){
+displacement.trackl=function(trackl,dt=6,resolution=0.107,bivar=F){
 
     # validity check for max track length greater than dt
     track.len=sapply(trackl,function(x) dim(x)[1])
@@ -154,7 +165,7 @@ displacement.trackl=function(trackl,dt=6,resolution=0.107){
 
         num.tracks[i]=length(trackl.dt)
         displacement.individual=sapply(trackl.dt,function(x){
-            displacement.track(track=x,dt=i,resolution=resolution)},simplify = F)
+            displacement.track(track=x,dt=i,resolution=resolution,bivar=bivar)},simplify = F)
 
         # as the result is of different length, the output is a list
     }
@@ -190,11 +201,11 @@ displacement.trackl=function(trackl,dt=6,resolution=0.107){
 ##------------------------------------------------------------------------------
 ## displacement.trackll
 
-displacement.trackll=function(trackll,dt=6,resolution=0.107){
+displacement.trackll=function(trackll,dt=6,resolution=0.107,bivar=F){
 
 
     displacement.trackll.lst=lapply(trackll,function(x){
-        displacement=displacement.trackl(trackl=x,dt=dt,resolution=resolution)
+        displacement=displacement.trackl(trackl=x,dt=dt,resolution=resolution,bivar=bivar)
         cat("\n...\n") # a seperator to make output clearer
 
         return(displacement)
@@ -208,8 +219,8 @@ displacement.trackll=function(trackll,dt=6,resolution=0.107){
 
 # the minimum tracks to include for the dt is recommended as 50. Users can see the screen output, or NumTracksAtDt of displacement.trackll to decide the dt that suits.
 
-displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F){
-    dp=displacement.trackll(trackll,dt=dt,resolution=resolution)
+displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F,bivar=F){
+    dp=displacement.trackll(trackll,dt=dt,resolution=resolution,bivar=bivar)
 
     # take "InidvidualDisplacement" out
     InidvidualDisplacement=list()
@@ -265,17 +276,17 @@ displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F){
     # remove Inf
     dat=dat[!is.infinite(dat$x),]
     # make it a list
-    cdf.displacement=split(dat,f=dat$group)
+    CDF.displacement=split(dat,f=dat$group)
     # name the list
     # the order of the grouping in ggplot2 is sorted by factor,
     # so group 1 is levels(factor(c("SWR1","HTZ1")))[1]
     #     > levels(factor(c("SWR1","HTZ1")))
     #     [1] "HTZ1" "SWR1"
-    name.cdf.displacement=levels(factor(names(stepwise.displacement)))
-    names(cdf.displacement)=name.cdf.displacement
+    name.CDF.displacement=levels(factor(names(stepwise.displacement)))
+    names(CDF.displacement)=name.CDF.displacement
 
     # format output by removing group column and renaming x,y column
-    cdf.displacement=lapply(cdf.displacement,function(x) {
+    CDF.displacement=lapply(CDF.displacement,function(x) {
 
         x$group=NULL
         names(x)=c("CDF","UniqueDisplacement")
@@ -285,29 +296,29 @@ displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F){
 
     for (i in 1:length(stepwise.displacement)){
         stepwise.displacement[[i]]["L2"]=NULL
-        colnames(stepwise.displacement[[i]])=c("StepwiseDisplacement","TrackIndex")
+        colnames(stepwise.displacement[[i]])=c("stepwiseDisplacement","trackIndex")
     }
 
     if (output==T){
 
         for (i in 1:length(stepwise.displacement)){
-            fileName=paste("StepwiseDisplacement-",
+            fileName=paste("stepwiseDisplacement-",
                            .timeStamp(file.name[i]),"....csv",sep="")
-            cat("\nOutput StepwiseDisplacement for",file.name[i],"\n")
+            cat("\nOutput stepwiseDisplacement for",file.name[i],"\n")
             write.csv(file=fileName,stepwise.displacement[[i]],row.names = F)
         }
 
-        for (i in 1:length(cdf.displacement)){
+        for (i in 1:length(CDF.displacement)){
             fileName=paste("CDFDisplacement-",
                            .timeStamp(file.name[i]),"....csv",sep="")
             cat("\nOutput CDFDisplacement for",file.name[i],"\n")
-            write.csv(file=fileName,cdf.displacement[[i]],row.names = F)
+            write.csv(file=fileName,CDF.displacement[[i]],row.names = F)
         }
 
     }
 
-    output.lst=list(stepwise.displacement,cdf.displacement)
-    names(output.lst)=c("stepwise.displacement","cdf.displacement")
+    output.lst=list(stepwise.displacement,CDF.displacement)
+    names(output.lst)=c("stepwise.displacement","CDF.displacement")
 
 
     return(output.lst)

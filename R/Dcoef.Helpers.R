@@ -153,8 +153,6 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
     # for all tracks, take the first percentage*length steps
     # no matter how short they are
 
-
-
     msd.list=msd.vecdt(trackll,vecdt=N,resolution=resolution,filter=filter,output=F)
 
 
@@ -190,7 +188,7 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 
     }
 
-    # this changes format into a matrix
+    # this changes shape/format into a matrix
     D.coef=sapply(D.coef,function(x){
         do.call(rbind,x)},simplify=F)
 

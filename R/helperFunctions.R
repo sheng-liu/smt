@@ -10,6 +10,7 @@
 ##------------------------------------------------------------------------------
 ## .timeStamp
 # add time stamp and file name as a unique signature of the output file
+##'@export .timeStamp
 .timeStamp=function(filename){
 
     basename=basename(filename)

@@ -27,7 +27,7 @@
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
-##' dcoef=Dcoef(trackll,dt=6,plot=F,output=F)
+##' dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
 ##' fitNormDistr(dcoef,components=2)
 
 ##' @export fitNormDistr
@@ -39,6 +39,7 @@
 
 fitNormDistr=function(dcoef,components=2){
 
+    # scale=1e3
     mixmdl.lst=list()
 
     name=names(dcoef)
@@ -47,18 +48,50 @@ fitNormDistr=function(dcoef,components=2){
 
         data=dcoef[[name[i]]][,"slope"]
 
-        mixmdl=normalmixEM(data,k=components)
-        plot(mixmdl,which=2)
 
-        mixmdl.lst[[i]]=mixmdl
+        if (components==1){
+
+
+            # this fit ignores the negative values
+            # data=data[data>=0]
+            # mixmdl=fitdist(data,"norm")
+            # mixmdl=fitdist(data*scale,"norm",method="mle")
+            # small values need scaling, mme doesn't and generate the same fit.
+
+            mixmdl=fitdist(data,"norm",method="mme")
+
+            #denscomp(fitg,demp=T)
+            #plot(mixmdl)
+            denscomp(mixmdl, addlegend=FALSE)
+
+            mixmdl.lst[[i]]=mixmdl
+
+        }else{
+            mixmdl=normalmixEM(data,k=components)
+            plot(mixmdl,which=2)
+
+            mixmdl.lst[[i]]=mixmdl
+
+        }
+
     }
 
     names(mixmdl.lst)=name
     # return(mixmdl.lst)
 
-    abstr.lst=lapply(mixmdl.lst,
-                     function(x){
-                         return(list(proportions=x$lambda,mean=x$mu,sd=x$sigma))})
+    if (components==1){
+
+        abstr.lst=lapply(mixmdl.lst,function(x){
+            s=summary(x)
+            return(list(mean=s$estimate[1],sd=s$estimate[2]))
+        })
+
+    }else{
+        abstr.lst=lapply(mixmdl.lst,
+                         function(x){
+                             return(list(proportions=x$lambda,mean=x$mu,sd=x$sigma))})
+    }
+
     return(abstr.lst)
 }
 

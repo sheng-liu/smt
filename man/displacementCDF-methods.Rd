@@ -23,7 +23,7 @@ for detail.}
 }
 \value{
 \itemize{
-\item{ list of "stepwise.displacement" and "cdf.displacement",} {A list of stepwise.displacement" and "cdf.displacement". the name of the list is the Diatrack folder name.}
+\item{ list of "stepwise.displacement" and "CDF.displacement",} {A list of stepwise.displacement" and "CDF.displacement". the name of the list is the Diatrack folder name.}
 
 \item{Output file,} {Displacement of individual trajectoreis at specified dt.}
 

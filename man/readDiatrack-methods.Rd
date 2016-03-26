@@ -26,6 +26,10 @@ read output file (tracks/trajecotries) from Diatrack.
 default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
 
 the absolute coordinates trajectory has moved
+
+trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
+This "indexPerFile" is the index within a diatrackFile.
+This "indexPerTrackll" is the index within a trackll, which is unique.
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")

@@ -27,7 +27,7 @@ fit normal distribution to diffusion coefficient caclulated by Dcoef method.
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
-dcoef=Dcoef(trackll,dt=6,plot=F,output=F)
+dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
 fitNormDistr(dcoef,components=2)
 }
 

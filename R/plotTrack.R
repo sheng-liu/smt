@@ -34,8 +34,8 @@
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
-##' trackll=readDiatrack(folder,ab.track=TRUE)
-##' plotTrack(trackll)
+##' trackll.ab=readDiatrack(folder,ab.track=TRUE)
+##' plotTrack(trackll.ab)
 ##'
 ##' ## plot from index file
 ##' index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")
@@ -96,6 +96,15 @@
     return(ab.trackl.res)
 
 }
+
+
+
+
+
+
+
+
+
 
 
 plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500){

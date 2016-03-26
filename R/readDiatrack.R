@@ -37,6 +37,10 @@
 ##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
 ##'
 ##' the absolute coordinates trajectory has moved
+##'
+##' trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
+##' This "indexPerFile" is the index within a diatrackFile.
+##' This "indexPerTrackll" is the index within a trackll, which is unique.
 
 ##' @import ggplot2
 ##' @import dplyr
@@ -72,8 +76,8 @@
     track.list=list()
     # store absolute coordinates of track for comparison plots
     ab.track.list=list()
-    # store track.len
-    track.len=c()
+    # store num.tracks.per.file
+    num.tracks.per.file=c()
 
 
     # select 3 column at a time
@@ -92,8 +96,8 @@
         # the [[]] is important, otherwise only x is included
         track.list[[i]]=track
 
-        # store track.len
-        track.len[i]=dim(track)[1]
+        # store num.tracks.per.file
+        num.tracks.per.file[i]=dim(track)[1]
 
         ## preprocess to fix coordinates from 0 to max
         ## absolute value of trajectory movement
@@ -114,7 +118,7 @@
 
 
     # duration=table(frame.id)
-    duration=track.len
+    duration=num.tracks.per.file
 
     # file.id
     file.subname=substr(file.name,
@@ -123,11 +127,11 @@
 
     file.id=rep(file.subname,length(duration))
 
-    # index
-    index=seq(from=1,to=length(duration))
+    # indexPerFile
+    indexPerFile=seq(from=1,to=length(duration))
 
-    ## trackID=fileID.frameID.duration.index
-    track.name=paste(file.id,frame.id,duration,index,sep=".")
+    ## trackID=fileID.frameID.duration.indexPerFile
+    track.name=paste(file.id,frame.id,duration,indexPerFile,sep=".")
 
     # name the track
     names(track.list)=track.name
@@ -163,9 +167,20 @@ readDiatrack=function(folder,merge= F,ab.track=F){
         for (i in 1:length(file.list)){
 
             track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+
+            # add indexPerTrackll to track name
+            indexPerTrackll=1:length(track)
+            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+
             trackll[[i]]=track
             names(trackll)[i]=file.name[i]
         }
+        
+        # trackll naming scheme
+        # if merge==F, list takes the name of individual file name within folder
+        # file.name > data.frame.name
+        # if merge==T, list takes the folder name
+        # folder.name > data.frame.name
 
     }else{
 
@@ -180,15 +195,20 @@ readDiatrack=function(folder,merge= F,ab.track=F){
             track.holder=c(track.holder,track)
 
         }
+
+        # add indexPerTrackll to track name
+        indexPerTrackll=1:length(track.holder)
+
+        names(track.holder)=mapply(paste,names(track.holder),
+                                   indexPerTrackll,sep=".")
+
         # make the result a list of list with length 1
         trackll[[1]]=track.holder
         names(trackll)[[1]]=folder.name
 
-
         # can put file name into name of the tracks
-        # filename was putinto the name of the tracks
+        # filename was put into the name of the tracks
     }
-
 
     return(trackll)
 }

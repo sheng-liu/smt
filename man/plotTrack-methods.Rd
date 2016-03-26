@@ -40,8 +40,8 @@ plotTrackFromIndex: if user provide a csv file with first column listing the ind
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
-trackll=readDiatrack(folder,ab.track=TRUE)
-plotTrack(trackll)
+trackll.ab=readDiatrack(folder,ab.track=TRUE)
+plotTrack(trackll.ab)
 
 ## plot from index file
 index.file=system.file("extdata","INDEX","indexFile.csv",package="smt")

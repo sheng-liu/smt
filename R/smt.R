@@ -34,7 +34,8 @@
 ##' @import gridExtra
 ##' @importFrom scales cbreaks
 ##' @importFrom mixtools normalmixEM
-
+##' @importFrom fitdistrplus fitdist
+##' @importFrom fitdistrplus denscomp
 ## dplyr has masked  intersect, setdiff, setequal, union from base and other packages, try to use importFrom instead of import package
 ## @importFrom dplyr summarise group_by select %>%
 ##

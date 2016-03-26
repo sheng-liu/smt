@@ -45,9 +45,9 @@
 # ------------------------------------------------------------------------------
 # one component fit
 
-one.comp.fit=function(r,P,start.value=list(D=0.5),name){
+one.comp.fit=function(r,P,start.value=list(D=0.5),t.interval=0.01,name){
     # with one parameter, D
-    p = function(r,D){1 - exp(-r^2/(4*D*0.01))}
+    p = function(r,D){1 - exp(-r^2/(4*D*t.interval))}
 
     title=paste("One component fit -",name)
     cat("\n\n","==>",title,"\n")
@@ -60,17 +60,19 @@ one.comp.fit=function(r,P,start.value=list(D=0.5),name){
     plot(r,P,main=title,cex=0.3)
     curve(p(x,D=coef(ocfit)),add=TRUE,col="red")
 
+    #coef(summary(ocfit))
+
     return(ocfit)
 }
 
 # ------------------------------------------------------------------------------
 # two components fit
 
-two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),name){
+two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),t.interval=0.01,name){
 
     ## equation
     p3 =function(r,D1,D2,alpha){
-        1 - (alpha*exp(-r^2/(4*D1*0.01)) + (1-alpha)*exp(-r^2/(4*D2*0.01)))}
+        1 - (alpha*exp(-r^2/(4*D1*t.interval)) + (1-alpha)*exp(-r^2/(4*D2*t.interval)))}
 
     title=paste("Two components fit -",name)
     cat("\n\n","==>",title,"\n")
@@ -87,19 +89,21 @@ two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),name){
              coef(tcfit)["alpha"]),
           add=T,col="red"
     )
+
+    return(tcfit)
 }
 
 # ------------------------------------------------------------------------------
 # three components fit
 
-three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5),name){
+three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5),t.interval=0.01,name){
 
     ## equation
     p5=function(r,D1,D2,D3,alpha,beta){
         1 - (
-            alpha*exp(-r^2/(4*D1*0.01)) +
-                beta*exp(-r^2/(4*D2*0.01)) +
-                (1-alpha-beta)*exp(-r^2/(4*D3*0.01))
+            alpha*exp(-r^2/(4*D1*t.interval)) +
+                beta*exp(-r^2/(4*D2*t.interval)) +
+                (1-alpha-beta)*exp(-r^2/(4*D3*t.interval))
         )}
 
     title=paste("Three components fit -",name)
@@ -113,6 +117,8 @@ three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta
     plot(r,P,main=title,cex=0.3)
     curve(p5(x,coef(thcfit)["D1"],coef(thcfit)["D2"],coef(thcfit)["D3"],coef(thcfit)["alpha"],coef(thcfit)["beta"]),add=T,col="red")
 
+    return(thcfit)
+
 }
 
 
@@ -124,15 +130,19 @@ fitCDF=function(cdf, components=c("one","two","three"),
             start.value=list(
                 oneCompFit=list(D=0.5),
                 twoCompFit=list(D1=0.1,D2=0.5,alpha=0.5),
-                threeCompFit=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5))
+                threeCompFit=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5)),
+            t.interval=0.01
                       ){
 
     # use lapply to do it for all folders
-    cdf.displacement=cdf$cdf.displacement
+    cdf.displacement=cdf$CDF.displacement
     name=names(cdf.displacement)
 
     method=match.arg(components)
 
+    fit=list()
+    length(fit)=length(cdf.displacement)
+    names(fit)=names(cdf.displacement)
 
     for (i in 1:length(cdf.displacement)){
 
@@ -140,13 +150,21 @@ fitCDF=function(cdf, components=c("one","two","three"),
         P=cdf.displacement[[i]]$CDF
 
 
-        switch(method,
-               one={one.comp.fit(r,P,start.value=start.value$oneCompFit,name[i])},
-               two={two.comp.fit(r,P,start=start.value$twoCompFit,name[i])},
-               three={three.comp.fit(r,P,start=start.value$threeCompFit,name[i])}
+        fit[[i]]=switch(method,
+               one={one.comp.fit(r,P,start.value=start.value$oneCompFit,
+                                 t.interval=t.interval,name[i])},
+               two={two.comp.fit(r,P,start=start.value$twoCompFit,
+                                 t.interval=t.interval,name[i])},
+               three={three.comp.fit(r,P,start=start.value$threeCompFit,
+                                     t.interval=t.interval,name[i])}
                )
 
     }
+
+
+    fit.coef=lapply(fit,function(x) coef(summary(x)))
+
+    return(fit.coef)
 
 }
 
