@@ -11,22 +11,32 @@
 ##'   trajecotries by fitting displacementCDF.
 ##'
 ##' @usage
-##' fitCDF(cdf,
-##'        components=c("one","two","three"),
-##'        start.value=list(
-##'             oneCompFit=list(D=0.5),
-##'             twoCompFit=list(D1=0.1,D2=0.5,alpha=0.5),
-##'             threeCompFit=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5)))
+##'
+##' fitCDF((cdf, components=c("one","two","three"),
+##'         start=list(
+##'             oneCompFit=list(D=c(1e-3,2)),
+##'             twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),
+##'             threeCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
+##'                               alpha=c(1e-3,1),beta=c(1e-3,1))),
+##'         t.interval=0.01,
+##'         maxiter.search=1e3,
+##'         maxiter.optim=1e3)
+##'
 ##' @param cdf cdf calculated from displacementCDF().
 ##' @param components parameter specifying the number of components to fit.Currently support one to three components fit.
-##' @param start.value the start value for fitting.
-##'
+##' @param start the start value for fitting.
+##' @param t.interval time interval for image aquisition. Default 0.01 sec.
+##' @param maxiter.search maximum iteration in random search start value process. defual to 1000.
+##' @param maxiter.optim maximum iteration in local optimization process. Default ot 1000.
 ##' @return
 ##' \itemize{
 ##' \item{on screen output,} Result and parameters of goodness of the fit.
 ##' \item{Plot,} fiting plot.
 ##' }
 ##' @details calculating Dceof by fitting displacementCDF.
+##'
+##' Reducing the range can greatly increase the precision of the searching; alternatively, if the range are unavailable, increase the maxiter.search so more points will be searched through with the cost of computation time. maxiter.optim barely need to change, if it does not converge with default setting maxiter=1e3, most likely the problem is in the initial values.
+
 ##'
 ##' @examples
 ##'
@@ -36,29 +46,47 @@
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
 ##' fitCDF(cdf,components="two")
+##'
+##' # specify ranges of parameter value of itnerest
+##' fitCDF(cdf,components="two",
+##'       start=list(
+##'                 twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)))
+##'                 )
 
-##' @import minpack.lm
+##
 ###############################################################################
 
 ## dt needs to be avariable in this equation so it is flexible and has a meaning to its unit um/s
 
 # ------------------------------------------------------------------------------
 # one component fit
+# library(truncnorm)
 
-one.comp.fit=function(r,P,start.value=list(D=0.5),t.interval=0.01,name){
+one.comp.fit=function(r,P,start=list(D=c(1e-3,3)),t.interval=0.01,maxiter.optim=1e3,name){
     # with one parameter, D
-    p = function(r,D){1 - exp(-r^2/(4*D*t.interval))}
+    p1 = function(r,D){1 - exp(-r^2/(4*D*t.interval))}
 
     title=paste("One component fit -",name)
     cat("\n\n","==>",title,"\n")
 
+    # it seems for one parameter fit, any nls program does really well, in
+    # another words, the fitting seems independent of the intial value.
+    # maybe one parameter makes the relationship linear, so it always reaches to
+    # one conclusion
+
+    D=truncnorm::rtruncnorm(1,a=data.frame(start)[1,],b=data.frame(start)[2,])
+    # this defaults normal distribution with mean = 0, sd = 1
+
+    start=list(D=D)
+
     # fit equation 2 to data P
-    ocfit=nls(P ~ p(r,D),start=start.value)
-    print(ocfit)
+    ocfit=nls(P ~ p1(r,D),start=start,control = nls.control(maxiter = maxiter.optim))
+
+    print(ocfit);cat("\n")
 
     # plot
     plot(r,P,main=title,cex=0.3)
-    curve(p(x,D=coef(ocfit)),add=TRUE,col="red")
+    curve(p1(x,D=coef(ocfit)),add=TRUE,col="red")
 
     #coef(summary(ocfit))
 
@@ -68,7 +96,7 @@ one.comp.fit=function(r,P,start.value=list(D=0.5),t.interval=0.01,name){
 # ------------------------------------------------------------------------------
 # two components fit
 
-two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),t.interval=0.01,name){
+two.comp.fit=function(r,P,start=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),t.interval=0.01,maxiter.search=1e3,maxiter.optim=1e3,name){
 
     ## equation
     p3 =function(r,D1,D2,alpha){
@@ -77,9 +105,22 @@ two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),t.interval=0
     title=paste("Two components fit -",name)
     cat("\n\n","==>",title,"\n")
 
-    ## fitting
-    tcfit= nls(P ~ p3(r,D1,D2,alpha),start=start.value)
-    print(tcfit)
+    cat("\nBrute force random search start value...\n\n")
+    r.search.tcfit=nls2(P ~ p3(r,D1,D2,alpha),start=data.frame(start),
+                       # algorithm="brute-force",
+                       algorithm="random-search",
+                       control = nls.control(maxiter = maxiter.search))
+
+    print(coef(r.search.tcfit))
+
+    ## local optimization using nlsLM
+    cat("\nLocal optimization...\n\n")
+    tcfit=nlsLM(P ~ p3(r,D1,D2,alpha),
+                start=coef(r.search.tcfit),
+                lower=c(0,0,0),
+                upper=c(Inf,Inf,1))
+
+    print(tcfit);cat("\n")
 
     ## plotting
     plot(r,P,main=title,cex=0.3)
@@ -92,11 +133,13 @@ two.comp.fit=function(r,P,start.value=list(D1=0.1,D2=0.5,alpha=0.5),t.interval=0
 
     return(tcfit)
 }
-
 # ------------------------------------------------------------------------------
 # three components fit
 
-three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5),t.interval=0.01,name){
+three.comp.fit=function(r,P,start=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
+                                       alpha=c(1e-3,1),beta=c(1e-3,1)),
+                        t.interval=0.01,maxiter.search=1e3,maxiter.optim=1e3,name){
+
 
     ## equation
     p5=function(r,D1,D2,D3,alpha,beta){
@@ -109,9 +152,34 @@ three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta
     title=paste("Three components fit -",name)
     cat("\n\n","==>",title,"\n")
 
-    # try minpack.lm for low or zero noise data
-    thcfit=nlsLM(P ~ p5(r,D1,D2,D3,alpha,beta),start=start.value,lower=c(0,0,0,0,0),upper=c(Inf,Inf,Inf,1,1))
-    print(coef(thcfit))
+    cat("\nBrute force random search start value...\n\n")
+    r.search.thcfit=nls2(P ~ p5(r,D1,D2,D3,alpha,beta),start=data.frame(start),
+
+                        # the virtue of using random search is it reduces the
+                        # chance that one parameters is fixed at the edge value,
+                        # which is barely the case.
+
+                        # algorithm="brute-force",
+                        algorithm="random-search",
+                        control = nls.control(maxiter = maxiter.search))
+
+    print(coef(r.search.thcfit))
+
+    ## local optimization using nlsLM
+    ## from minpack.lm for low or zero noise data
+    cat("\nLocal optimization...\n\n")
+    thcfit=nlsLM(P ~ p5(r,D1,D2,D3,alpha,beta),
+                 start=coef(r.search.thcfit),
+                 lower=c(0,0,0,0,0),
+                 upper=c(Inf,Inf,Inf,1,1),
+
+                 # barely need control of maxiter for nlsLM, if it does not
+                 # converge with default setting maxiter=1024, most likely the
+                 # problem is in the initial values
+                 control = nls.control(maxiter = maxiter.optim)
+                 )
+
+    print(thcfit);cat("\n") # needed for print when compiled as pacakge
 
     ## plot
     plot(r,P,main=title,cex=0.3)
@@ -123,16 +191,19 @@ three.comp.fit=function(r,P,start.value=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta
 
 
 
+
 # ------------------------------------------------------------------------------
 # fitCDF
 ##' @export fitCDF
 fitCDF=function(cdf, components=c("one","two","three"),
-            start.value=list(
-                oneCompFit=list(D=0.5),
-                twoCompFit=list(D1=0.1,D2=0.5,alpha=0.5),
-                threeCompFit=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5)),
-            t.interval=0.01
-                      ){
+                start=list(
+                    oneCompFit=list(D=c(1e-3,2)),
+                    twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),
+                    threeCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
+                                      alpha=c(1e-3,1),beta=c(1e-3,1))),
+                t.interval=0.01,
+                maxiter.search=1e3,
+                maxiter.optim=1e3){
 
     # use lapply to do it for all folders
     cdf.displacement=cdf$CDF.displacement
@@ -151,20 +222,27 @@ fitCDF=function(cdf, components=c("one","two","three"),
 
 
         fit[[i]]=switch(method,
-               one={one.comp.fit(r,P,start.value=start.value$oneCompFit,
-                                 t.interval=t.interval,name[i])},
-               two={two.comp.fit(r,P,start=start.value$twoCompFit,
-                                 t.interval=t.interval,name[i])},
-               three={three.comp.fit(r,P,start=start.value$threeCompFit,
-                                     t.interval=t.interval,name[i])}
+               one={one.comp.fit(r,P,start=start$oneCompFit,
+                                 t.interval=t.interval,name[i],
+                                 maxiter.optim=maxiter.optim)},
+
+               two={two.comp.fit(r,P,start=start$twoCompFit,
+                                 t.interval=t.interval,name[i],
+                                 maxiter.search=maxiter.search,
+                                 maxiter.optim=maxiter.optim)},
+
+               three={three.comp.fit(r,P,start=start$threeCompFit,
+                                     t.interval=t.interval,name[i],
+                                     maxiter.search=maxiter.search,
+                                     maxiter.optim=maxiter.optim)}
                )
 
     }
 
-
     fit.coef=lapply(fit,function(x) coef(summary(x)))
 
-    return(fit.coef)
+    print(fit.coef)
+    return(fit)
 
 }
 
@@ -175,4 +253,4 @@ fitCDF=function(cdf, components=c("one","two","three"),
 # a better density plot than ggplot2 there, or adjust it to be better /professiona looking
 #   plot(density(r),main="distribution of displacement r")
 
-## output files
+## output summary into csv files

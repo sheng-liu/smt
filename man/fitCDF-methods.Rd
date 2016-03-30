@@ -6,19 +6,28 @@
 \alias{one.comp.fit}
 \title{fitCDF}
 \usage{
-fitCDF(cdf,
-       components=c("one","two","three"),
-       start.value=list(
-            oneCompFit=list(D=0.5),
-            twoCompFit=list(D1=0.1,D2=0.5,alpha=0.5),
-            threeCompFit=list(D1=0.3,D2=0.3,D3=0.3,alpha=0.3,beta=0.5)))
+fitCDF((cdf, components=c("one","two","three"),
+        start=list(
+            oneCompFit=list(D=c(1e-3,2)),
+            twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),
+            threeCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
+                              alpha=c(1e-3,1),beta=c(1e-3,1))),
+        t.interval=0.01,
+        maxiter.search=1e3,
+        maxiter.optim=1e3)
 }
 \arguments{
-\item{start.value}{the start value for fitting.}
+\item{start}{the start value for fitting.}
+
+\item{t.interval}{time interval for image aquisition. Default 0.01 sec.}
+
+\item{maxiter.optim}{maximum iteration in local optimization process. Default ot 1000.}
 
 \item{cdf}{cdf calculated from displacementCDF().}
 
 \item{components}{parameter specifying the number of components to fit.Currently support one to three components fit.}
+
+\item{maxiter.search}{maximum iteration in random search start value process. defual to 1000.}
 }
 \value{
 \itemize{
@@ -32,6 +41,8 @@ Caclulate apparent diffusion coefficient (Dcoef) for
 }
 \details{
 calculating Dceof by fitting displacementCDF.
+
+Reducing the range can greatly increase the precision of the searching; alternatively, if the range are unavailable, increase the maxiter.search so more points will be searched through with the cost of computation time. maxiter.optim barely need to change, if it does not converge with default setting maxiter=1e3, most likely the problem is in the initial values.
 }
 \examples{
 # compare folders
@@ -40,5 +51,11 @@ folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
 fitCDF(cdf,components="two")
+
+# specify ranges of parameter value of itnerest
+fitCDF(cdf,components="two",
+      start=list(
+                twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)))
+                )
 }
 

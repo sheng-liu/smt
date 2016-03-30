@@ -28,7 +28,9 @@ default merge = FALSE, so the researcher can assay variations between files. Kee
 the absolute coordinates trajectory has moved
 
 trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
+
 This "indexPerFile" is the index within a diatrackFile.
+
 This "indexPerTrackll" is the index within a trackll, which is unique.
 }
 \examples{

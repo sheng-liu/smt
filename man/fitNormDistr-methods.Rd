@@ -5,12 +5,14 @@
 \alias{fitNormDistr}
 \title{fitNormDistr}
 \usage{
-fitNormDistr(dcoef,components=2)
+fitNormDistr(dcoef,components=2,log.transform=T)
 }
 \arguments{
 \item{dcoef}{diffusion coefficient calculated from Dcoef().}
 
 \item{components}{parameter specifying the number of components to fit.}
+
+\item{log.transform}{logical indicate if log10 transformation is needed, default F.}
 }
 \value{
 \describe{
@@ -28,6 +30,6 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
-fitNormDistr(dcoef,components=2)
+fitNormDistr(dcoef,components=2,log.transform=T)
 }
 

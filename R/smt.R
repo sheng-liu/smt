@@ -36,6 +36,9 @@
 ##' @importFrom mixtools normalmixEM
 ##' @importFrom fitdistrplus fitdist
 ##' @importFrom fitdistrplus denscomp
+##' @importFrom nls2 nls2
+##' @importFrom minpack.lm nlsLM
+##' @importFrom truncnorm rtruncnorm
 ## dplyr has masked  intersect, setdiff, setequal, union from base and other packages, try to use importFrom instead of import package
 ## @importFrom dplyr summarise group_by select %>%
 ##

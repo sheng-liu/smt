@@ -306,7 +306,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
         #         dcast(melt(m),Index~...)
 
         msd.plot=ggplot(
-            p,aes(x=1:dt,y=SummarizedMSD,group=file.name,col=file.name))+
+            p,aes(x=dt,y=SummarizedMSD,group=file.name,col=file.name))+
             geom_line()+geom_point()+
             geom_errorbar(aes(ymin=SummarizedMSD-StandardError,
                               ymax=SummarizedMSD+StandardError), width=.1)+
@@ -345,6 +345,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                                   group=interaction(file.name,track.num),
                                   col=file.name))+
                 geom_line()+
+                scale_x_continuous(breaks=scales::pretty_breaks())+
                 labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
                 theme_bw()+
                 theme(legend.title=element_blank())

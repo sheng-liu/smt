@@ -79,3 +79,27 @@ filtration=function(trackll,filter=c(min=7,max=Inf)){
 
 # no need for the focus swtich, as one can simply filter on a number that is bigger than the dt he wanted to draw on
 
+##------------------------------------------------------------------------------
+## filtration
+
+##' @export tracks.msda2smt
+tracks.msda2smt=function(file){
+
+    tracks.file=readMat(file)
+    # file.name=basename(file)
+    tracks.mat=tracks.file$tracks
+
+    trackl.smt=lapply(tracks.mat, function(x){
+        x=data.frame(x)
+        x=x[,-1] # remove time column
+        x=x/0.107  # change µm to pixel
+        colnames(x)=c("x","y")
+        x$z=rep(1,times=dim(x)[1])
+        return(x)
+    })
+
+    trackll.smt=list(trackl.smt)
+    names(trackll.smt)=basename(file)
+    return(trackll.smt)
+
+}

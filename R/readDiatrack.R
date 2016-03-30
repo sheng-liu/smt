@@ -39,7 +39,9 @@
 ##' the absolute coordinates trajectory has moved
 ##'
 ##' trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
+##'
 ##' This "indexPerFile" is the index within a diatrackFile.
+##'
 ##' This "indexPerTrackll" is the index within a trackll, which is unique.
 
 ##' @import ggplot2
@@ -175,7 +177,7 @@ readDiatrack=function(folder,merge= F,ab.track=F){
             trackll[[i]]=track
             names(trackll)[i]=file.name[i]
         }
-        
+
         # trackll naming scheme
         # if merge==F, list takes the name of individual file name within folder
         # file.name > data.frame.name
