@@ -20,7 +20,8 @@
 ##'                               alpha=c(1e-3,1),beta=c(1e-3,1))),
 ##'         t.interval=0.01,
 ##'         maxiter.search=1e3,
-##'         maxiter.optim=1e3)
+##'         maxiter.optim=1e3,
+##'         output=F)
 ##'
 ##' @param cdf cdf calculated from displacementCDF().
 ##' @param components parameter specifying the number of components to fit.Currently support one to three components fit.
@@ -28,9 +29,10 @@
 ##' @param t.interval time interval for image aquisition. Default 0.01 sec.
 ##' @param maxiter.search maximum iteration in random search start value process. defual to 1000.
 ##' @param maxiter.optim maximum iteration in local optimization process. Default ot 1000.
+##' @param output Logical indicaring if output file should be generated.
 ##' @return
 ##' \itemize{
-##' \item{on screen output,} Result and parameters of goodness of the fit.
+##' \item{on screen output and file} Result and parameters of goodness of the fit.
 ##' \item{Plot,} fiting plot.
 ##' }
 ##' @details calculating Dceof by fitting displacementCDF.
@@ -45,7 +47,7 @@
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
-##' fitCDF(cdf,components="two")
+##' fitCDF(cdf,components="two",output=F)
 ##'
 ##' # specify ranges of parameter value of itnerest
 ##' fitCDF(cdf,components="two",
@@ -203,7 +205,8 @@ fitCDF=function(cdf, components=c("one","two","three"),
                                       alpha=c(1e-3,1),beta=c(1e-3,1))),
                 t.interval=0.01,
                 maxiter.search=1e3,
-                maxiter.optim=1e3){
+                maxiter.optim=1e3,
+                output=F){
 
     # use lapply to do it for all folders
     cdf.displacement=cdf$CDF.displacement
@@ -239,10 +242,38 @@ fitCDF=function(cdf, components=c("one","two","three"),
 
     }
 
-    fit.coef=lapply(fit,function(x) coef(summary(x)))
+    result.lst=lapply(fit,function(x) coef(summary(x)))
 
-    print(fit.coef)
-    return(fit)
+
+
+#     lapply(fit,function(x) coef(x))
+#     lapply(fit,function(x) summary(x))
+#     lapply(fit,function(x) logLik(x))
+#
+#     lapply(fit,function(x) sum(residuals(x)^2)) # residual sum-of-squares
+#     lapply(fit,function(x) deviance(x)) # is/equals to residual sum-of-squares
+
+    result.lst=lapply(fit,function(x) {
+        estimate=coef(summary(x))[,"Estimate"]
+        std.error=coef(summary(x))[,"Std. Error"]
+        res.sum.of.squares=deviance(x)
+        re=cbind(estimate,std.error,res.sum.of.squares)}
+        )
+
+
+    print(result.lst)
+
+    # output
+    if (output==T){
+
+        result.df=do.call(rbind.data.frame,result.lst)
+        fileName=paste("FitCDF-",
+                       .timeStamp(name[1]),"....csv",sep="")
+        cat("\nOutput FitCDF.\n")
+        write.csv(file=fileName,result.df)
+    }
+
+    return(invisible(fit))
 
 }
 

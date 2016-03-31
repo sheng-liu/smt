@@ -198,12 +198,12 @@ msd.trackl=function(trackl,dt=6,resolution=0.107){
             N=length(msd.individual)
 
             msd.summarized[i]=mean(msd.individual,na.rm=T)
-            std.summarized[i]=sd(msd.individual,na.rm=T)/N
+            std.summarized[i]=sd(msd.individual,na.rm=T)/sqrt(N)
         }else{
 
             N=length(msd.individual[i,][!is.na(msd.individual[i,])])
             msd.summarized[i]=mean(msd.individual[i,],na.rm=T)
-            std.summarized[i]=sd(msd.individual[i,],na.rm=T)/N
+            std.summarized[i]=sd(msd.individual[i,],na.rm=T)/sqrt(N)
         }
 
     }
@@ -305,11 +305,19 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
         #         melt(m)
         #         dcast(melt(m),Index~...)
 
+        # change dt from factor to integer/numeric
+        # another way as.numeric(levels(x))[x]
+        p=transform(p,dt=as.integer(as.character(dt)))
         msd.plot=ggplot(
-            p,aes(x=dt,y=SummarizedMSD,group=file.name,col=file.name))+
+
+            # p,aes(x=as.integer(as.character(dt)), not work
+            p,aes(x=dt,
+                  y=SummarizedMSD,group=file.name,col=file.name))+
             geom_line()+geom_point()+
             geom_errorbar(aes(ymin=SummarizedMSD-StandardError,
                               ymax=SummarizedMSD+StandardError), width=.1)+
+            # this makes integer breaks
+            scale_x_continuous(breaks=scales::pretty_breaks())+
             labs(x="Time intervals (10ms)", y="SummarizedMSD (µm^2)")+
             theme_bw()+
             theme(legend.title=element_blank())
@@ -345,6 +353,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                                   group=interaction(file.name,track.num),
                                   col=file.name))+
                 geom_line()+
+                # this makes integer breaks
                 scale_x_continuous(breaks=scales::pretty_breaks())+
                 labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
                 theme_bw()+

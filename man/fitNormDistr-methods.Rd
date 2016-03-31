@@ -5,7 +5,7 @@
 \alias{fitNormDistr}
 \title{fitNormDistr}
 \usage{
-fitNormDistr(dcoef,components=2,log.transform=T)
+fitNormDistr(dcoef,components=2,log.transform=F,output=F)
 }
 \arguments{
 \item{dcoef}{diffusion coefficient calculated from Dcoef().}
@@ -13,12 +13,15 @@ fitNormDistr(dcoef,components=2,log.transform=T)
 \item{components}{parameter specifying the number of components to fit.}
 
 \item{log.transform}{logical indicate if log10 transformation is needed, default F.}
+
+\item{output}{Logical indicaring if output file should be generated.}
 }
 \value{
 \describe{
 \item{proportions}{The final mixing proportions.}
 \item{mean}{The final mean parameters.}
 \item{sd}{The final standard deviations.}
+\item{loglik}{The log likelihood.}
 }
 }
 \description{
@@ -30,6 +33,6 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
-fitNormDistr(dcoef,components=2,log.transform=T)
+fitNormDistr(dcoef,components=2,log.transform=F,output=F)
 }
 

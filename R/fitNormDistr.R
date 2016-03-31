@@ -10,15 +10,17 @@
 ##' @description fit normal distribution to diffusion coefficient caclulated by Dcoef method.
 ##'
 ##' @usage
-##' fitNormDistr(dcoef,components=2,log.transform=T)
+##' fitNormDistr(dcoef,components=2,log.transform=F,output=F)
 ##' @param dcoef diffusion coefficient calculated from Dcoef().
 ##' @param components parameter specifying the number of components to fit.
 ##' @param log.transform logical indicate if log10 transformation is needed, default F.
+##' @param output Logical indicaring if output file should be generated.
 ##' @return
 ##' \describe{
 ##' \item{proportions}{The final mixing proportions.}
 ##' \item{mean}{The final mean parameters.}
 ##' \item{sd}{The final standard deviations.}
+##' \item{loglik}{The log likelihood.}
 ##' }
 
 ##' @examples
@@ -28,7 +30,7 @@
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
-##' fitNormDistr(dcoef,components=2,log.transform=T)
+##' fitNormDistr(dcoef,components=2,log.transform=F,output=F)
 
 ##' @export fitNormDistr
 ###############################################################################
@@ -37,7 +39,7 @@
 # library(mixtools)
 
 
-fitNormDistr=function(dcoef,components=2,log.transform=F){
+fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
 
     # scale=1e3
     mixmdl.lst=list()
@@ -48,7 +50,10 @@ fitNormDistr=function(dcoef,components=2,log.transform=F){
         data=dcoef[[name[i]]][,"slope"]
 
         # log transformation
-        if (log.transform) data=log10(data)
+        if (log.transform==T) {
+            data=log10(data)
+            data=data[!is.na(data)]
+            }
 
         if (components==1){
 
@@ -91,6 +96,7 @@ fitNormDistr=function(dcoef,components=2,log.transform=F){
             result=list(mean=s$estimate[1],sd=s$estimate[2])
             if (log.transform) result$mean=10^(result$mean)
             result=do.call(cbind.data.frame,result)
+            print(result)
             return(result)
         })
 
@@ -98,7 +104,10 @@ fitNormDistr=function(dcoef,components=2,log.transform=F){
 
         result.lst=lapply(mixmdl.lst,
                          function(x){
-                             result=list(proportions=x$lambda,mean=x$mu,sd=x$sigma)
+                             result=list(proportion=x$lambda,
+                                         mean=x$mu,
+                                         sd=x$sigma,
+                                         log.lik=x$loglik)
                              if (log.transform) result$mean=10^(result$mean)
                              result=do.call(cbind.data.frame,result)
                              return(result)})
@@ -106,7 +115,19 @@ fitNormDistr=function(dcoef,components=2,log.transform=F){
 
     # return(result.lst)
     print(result.lst)
-    return(mixmdl.lst)
+
+    # output
+    if (output==T){
+
+        result.df=do.call(rbind.data.frame,result.lst)
+        fileName=paste("FitNormDistr-",
+                       .timeStamp(name[1]),"....csv",sep="")
+        cat("\nOutput FitNormDistr.\n")
+        write.csv(file=fileName,result.df)
+    }
+    # use invisible() so the user would not be overwhelmed by the numbers
+    # while programmers can assign the value and use it
+    return(invisible(mixmdl.lst))
 
 }
 

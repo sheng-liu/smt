@@ -14,7 +14,8 @@ fitCDF((cdf, components=c("one","two","three"),
                               alpha=c(1e-3,1),beta=c(1e-3,1))),
         t.interval=0.01,
         maxiter.search=1e3,
-        maxiter.optim=1e3)
+        maxiter.optim=1e3,
+        output=F)
 }
 \arguments{
 \item{start}{the start value for fitting.}
@@ -28,10 +29,12 @@ fitCDF((cdf, components=c("one","two","three"),
 \item{components}{parameter specifying the number of components to fit.Currently support one to three components fit.}
 
 \item{maxiter.search}{maximum iteration in random search start value process. defual to 1000.}
+
+\item{output}{Logical indicaring if output file should be generated.}
 }
 \value{
 \itemize{
-\item{on screen output,} Result and parameters of goodness of the fit.
+\item{on screen output and file} Result and parameters of goodness of the fit.
 \item{Plot,} fiting plot.
 }
 }
@@ -50,7 +53,7 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
-fitCDF(cdf,components="two")
+fitCDF(cdf,components="two",output=F)
 
 # specify ranges of parameter value of itnerest
 fitCDF(cdf,components="two",

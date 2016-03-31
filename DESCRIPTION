@@ -1,7 +1,7 @@
 Package: smt
 Type: Package
 Title: Single Molecule Tracking
-Version: 0.2
+Version: 0.3
 Date: 2015-10-15
 Author: Sheng Liu
 Maintainer: Sheng Liu <lius@janelia.hhmi.org>
