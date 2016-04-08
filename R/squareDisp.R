@@ -56,7 +56,10 @@ squareDisp=function(track,dt=1,resolution=0.107){
 
         square.disp=x.disp^2+y.disp^2
         index=rownames(track.dt[[i]])
-        track.dt[[i]]=mutate(track.dt[[i]],index,square.disp,dx=x.disp,dy=y.disp)
+
+        # for performance purpose
+        # track.dt[[i]]=mutate(track.dt[[i]],index,square.disp,dx=x.disp,dy=y.disp)
+        track.dt[[i]]=cbind(track.dt[[i]],index,square.disp,dx=x.disp,dy=y.disp)
 
     }
 

@@ -98,7 +98,7 @@ msd.track=function(track,dt=6,resolution=0.107){
 
 
     # summarize msd for track at all dt
-    # note this function calculates only "at" all dt
+    # note this function calculates only "at" each dt
     msd.dt.track=c()
     for (i in 1:dt){
 

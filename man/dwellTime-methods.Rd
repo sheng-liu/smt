@@ -6,10 +6,10 @@
 \alias{dwellTime}
 \title{dwellTime}
 \usage{
-dwellTime(trackll,exposure=10,x.scale=c(min=0,max=250),plot=F,output=F)
+dwellTime(trackll,t.interval=10,x.scale=c(min=0,max=250),plot=T,output=F)
 }
 \arguments{
-\item{exposure}{Exposure time, default = 10ms.}
+\item{t.interval}{t.interval time, default = 10ms.}
 
 \item{trackll}{Track list output from readDiatrack().}
 
