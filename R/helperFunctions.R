@@ -130,6 +130,19 @@ same.scale=function(mixmdl.lst){
 
 }
 
+##------------------------------------------------------------------------------
+## seedIt
+##' @export seedIt
+seedIt=function(expr,seed){
+    if (is.null(seed)){
+        seed=sample(0:647,1)
+        set.seed(seed)
+    }else{set.seed(seed)}
+
+    note <- paste("\nRandom number generation seed",seed,"\n")
+    cat(note)
+    structure(expr, seed=seed)
+}
 
 
 

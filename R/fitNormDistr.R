@@ -10,13 +10,15 @@
 ##' @description fit normal distribution to diffusion coefficient caclulated by Dcoef method.
 ##'
 ##' @usage
-##' fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F)
+##' fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,
+##'              combine.plot=F,output=F,seed=NULL)
 ##' @param dcoef diffusion coefficient calculated from Dcoef().
 ##' @param components parameter specifying the number of components to fit. If NULL (default), a components analysis is done to determine the most likely components and this number is then used for subsequent analysis.
 ##' @param log.transform logical indicate if log10 transformation is needed, default F.
 ##' @param binwidth binwidth for the combined plot. If NULL (default), will automatic assign binwidth.
 ##' @param output Logical indicaring if output file should be generated.
 ##' @param combine.plot Logical indicating if all the plot should be combined into one, with same scale (/same axises breaks), same color theme, and same bin size for comparison.
+##' @param seed Seed for random number generator. This makes each run easily repeatable. Seed will be automatically assigned if no seed is specified (default). The seed information is stored as an attribute of the returned object. The seed can also be output to a txt file when output=T.
 ##'@details
 ##'components analysis uses the likelihood ratio test (LRT) to assess the number of mixture components.
 ##'
@@ -36,8 +38,12 @@
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
 ##' # fit dcoef
-##' set.seed(0)
-##' fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=T,output=F)
+##' a=fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=F,output=F)
+##' # to repeat a
+##' b=fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=F,output=F,seed=attr(a,"seed"))
+##' # if a and b are the same
+##' mapply(identical,a[[1]],b[[1]])
+
 
 ##' @export fitNormDistr
 ###############################################################################
@@ -45,8 +51,13 @@
 
 # library(mixtools)
 
-fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F){
+.fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F){
 
+    # random.seed=NULL
+    # set seed for random number generation
+    # according to stata How to choose a seed
+#     rseed= if (is.null(random.seed)) sample(0:647,1) else random.seed
+#     cat("\nset.seed (",rseed, ") for random number generation\n")
 
     # scale=1e3
     name=names(dcoef)
@@ -111,6 +122,11 @@ fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combin
 
             # convergence creteria epsilon = 1e-10 is to filter out false positives
             mixmdl=normalmixEM(data,k=components.int,maxit=1e4,epsilon = 1e-10)
+
+            # reorder also for plotting and for output result
+            # this is recordered on mean value
+            mixmdl=reorderEM(mixmdl)
+
             print(summary(mixmdl))
             # plot(mixmdl,which=2)
             plot.mixEM=gg.mixEM(mixmdl,binwidth=binwidth,reorder=T)
@@ -124,8 +140,8 @@ fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combin
 
             # approximate standard error using parametic bootstrap
             cat("\napproximating standard error by parametic bootstrap...\n\n")
-            capture.output({mixmdl.se=boot.se(mixmdl, B = 100)},
-                           file="/dev/null")
+            capture.output({mixmdl.se=boot.se(mixmdl, B = 100)})
+            # file="/dev/null" # this only for mac
 
             mixmdl.se.lst[[i]]=mixmdl.se
 
@@ -260,11 +276,37 @@ fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combin
 
 }
 
+
+fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F,seed=NULL){
+
+    # set seed
+    if (is.null(seed)){
+        seed=sample(0:647,1)
+        set.seed(seed)
+    }else{set.seed(seed)}
+
+    note <- paste("\nRandom number generation seed",seed,"\n")
+    cat(note)
+
+    # output seed
+    if (output==T){
+
+        name=names(dcoef)
+        fileName=paste("FitNormDistr-",
+                       .timeStamp(name[1]),"-Seed....txt",sep="")
+        writeLines(text=note,con=fileName)
+    }
+
+    # return
+    structure(.fitNormDistr(dcoef=dcoef,components=components,log.transform=log.transform,binwidth=binwidth,combine.plot=combine.plot,output=output),seed=seed)
+
+}
+
+
+
+
 # TODO:
-#     components=1 format
-
-
-
-
+# 1 components=1 format
+# 2 combine the output of seed into the df
 
 

@@ -21,7 +21,8 @@
 ##'         t.interval=0.01,
 ##'         maxiter.search=1e3,
 ##'         maxiter.optim=1e3,
-##'         output=F)
+##'         output=F,
+##'         seed=NULL)
 ##'
 ##' @param cdf cdf calculated from displacementCDF().
 ##' @param components parameter specifying the number of components to fit.Currently support one to three components fit.
@@ -30,6 +31,7 @@
 ##' @param maxiter.search maximum iteration in random search start value process. defual to 1000.
 ##' @param maxiter.optim maximum iteration in local optimization process. Default ot 1000.
 ##' @param output Logical indicaring if output file should be generated.
+##' @param seed Seed for random number generator. This makes each run easily repeatable. Seed will be automatically assigned if no seed is specified (default). The seed information is stored as an attribute of the returned object. The seed can also be output to a txt file when output=T.
 ##' @return
 ##' \itemize{
 ##' \item{on screen output and file} Result and parameters of goodness of the fit.
@@ -47,13 +49,36 @@
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
-##' fitCDF(cdf,components="two",output=F)
 ##'
-##' # specify ranges of parameter value of itnerest
+##' # specify ranges of parameter value of interest
 ##' fitCDF(cdf,components="two",
 ##'       start=list(
 ##'                 twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)))
 ##'                 )
+##'
+##' # repeat a fit
+##' a=fitCDF(cdf,components="two",output=F)
+##' b=fitCDF(cdf,components="two",output=F,seed=attr(a,"seed"))
+##'
+##' # if result are identical
+##' x=summary(a[[1]])
+##' y=summary(b[[1]])
+##' # formula records environment, exclude from the comparison
+##' mapply(identical,x[names(x)!="formula"],y[names(y)!="formula"])
+
+
+# the only difference is the function environment, of course it is runned in two functions
+# > mapply(identical,summary(a[[1]]),summary(b[[1]]))
+# formula    residuals        sigma           df cov.unscaled         call
+# FALSE         TRUE         TRUE         TRUE         TRUE         TRUE
+# convInfo      control    na.action coefficients   parameters
+# TRUE         TRUE         TRUE         TRUE         TRUE
+# > summary(b[[1]])$formula
+# P ~ p3(r, D1, D2, alpha)
+# <environment: 0x11a893640>
+#     > summary(a[[1]])$formula
+# P ~ p3(r, D1, D2, alpha)
+# <environment: 0x11e79f208>
 
 ##
 ###############################################################################
@@ -197,7 +222,7 @@ three.comp.fit=function(r,P,start=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
 # ------------------------------------------------------------------------------
 # fitCDF
 ##' @export fitCDF
-fitCDF=function(cdf, components=c("one","two","three"),
+.fitCDF=function(cdf, components=c("one","two","three"),
                 start=list(
                     oneCompFit=list(D=c(1e-3,2)),
                     twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),
@@ -276,6 +301,45 @@ fitCDF=function(cdf, components=c("one","two","three"),
     return(invisible(fit))
 
 }
+
+fitCDF=function(cdf, components=c("one","two","three"),
+                start=list(
+                    oneCompFit=list(D=c(1e-3,2)),
+                    twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)),
+                    threeCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),D3=c(1e-3,2),
+                                      alpha=c(1e-3,1),beta=c(1e-3,1))),
+                t.interval=0.01,
+                maxiter.search=1e3,
+                maxiter.optim=1e3,
+                output=F,
+                seed=NULL){
+
+    # set seed
+    result=seedIt(expr=.fitCDF(cdf=cdf, components=components,
+                       start=start,
+                       t.interval=t.interval,
+                       maxiter.search=maxiter.search,
+                       maxiter.optim=maxiter.optim,
+                       output=output),seed=seed)
+
+    # output seed
+    if (output==T){
+
+        name=names(result)
+        fileName=paste("FitCDF-",
+                       .timeStamp(name[1]),"-Seed....txt",sep="")
+
+        note <- paste("\nRandom number generation seed",attr(result,"seed"),"\n")
+        writeLines(text=note,con=fileName)
+    }
+
+    return(result)
+
+}
+
+
+
+
 
 
 # ------------------------------------------------------------------------------

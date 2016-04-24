@@ -318,7 +318,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                               ymax=SummarizedMSD+StandardError), width=.1)+
             # this makes integer breaks
             scale_x_continuous(breaks=scales::pretty_breaks())+
-            labs(x="Time intervals (10ms)", y="SummarizedMSD (µm^2)")+
+            labs(x="Time intervals", y="SummarizedMSD (µm^2)")+
             theme_bw()+
             theme(legend.title=element_blank())
 
@@ -355,7 +355,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
                 geom_line()+
                 # this makes integer breaks
                 scale_x_continuous(breaks=scales::pretty_breaks())+
-                labs(x="Time intervals (10ms)", y="MSD (µm^2)")+
+                labs(x="Time intervals", y="MSD (µm^2)")+
                 theme_bw()+
                 theme(legend.title=element_blank())
 

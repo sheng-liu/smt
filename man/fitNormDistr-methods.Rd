@@ -2,10 +2,12 @@
 % Please edit documentation in R/fitNormDistr.R
 \docType{methods}
 \name{fitNormDistr}
+\alias{.fitNormDistr}
 \alias{fitNormDistr}
 \title{fitNormDistr}
 \usage{
-fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F)
+fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,
+             combine.plot=F,output=F,seed=NULL)
 }
 \arguments{
 \item{dcoef}{diffusion coefficient calculated from Dcoef().}
@@ -19,6 +21,8 @@ fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,
 \item{combine.plot}{Logical indicating if all the plot should be combined into one, with same scale (/same axises breaks), same color theme, and same bin size for comparison.}
 
 \item{output}{Logical indicaring if output file should be generated.}
+
+\item{seed}{Seed for random number generator. This makes each run easily repeatable. Seed will be automatically assigned if no seed is specified (default). The seed information is stored as an attribute of the returned object. The seed can also be output to a txt file when output=T.}
 }
 \value{
 \describe{
@@ -41,7 +45,10 @@ folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
 # fit dcoef
-set.seed(0)
-fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=T,output=F)
+a=fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=F,output=F)
+# to repeat a
+b=fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=F,output=F,seed=attr(a,"seed"))
+# if a and b are the same
+mapply(identical,a[[1]],b[[1]])
 }
 

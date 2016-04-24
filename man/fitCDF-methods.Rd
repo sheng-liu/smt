@@ -15,7 +15,8 @@ fitCDF((cdf, components=c("one","two","three"),
         t.interval=0.01,
         maxiter.search=1e3,
         maxiter.optim=1e3,
-        output=F)
+        output=F,
+        seed=NULL)
 }
 \arguments{
 \item{start}{the start value for fitting.}
@@ -31,6 +32,8 @@ fitCDF((cdf, components=c("one","two","three"),
 \item{maxiter.search}{maximum iteration in random search start value process. defual to 1000.}
 
 \item{output}{Logical indicaring if output file should be generated.}
+
+\item{seed}{Seed for random number generator. This makes each run easily repeatable. Seed will be automatically assigned if no seed is specified (default). The seed information is stored as an attribute of the returned object. The seed can also be output to a txt file when output=T.}
 }
 \value{
 \itemize{
@@ -53,12 +56,21 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 cdf=displacementCDF(trackll,dt=1,plot=F,output=F)
-fitCDF(cdf,components="two",output=F)
 
-# specify ranges of parameter value of itnerest
+# specify ranges of parameter value of interest
 fitCDF(cdf,components="two",
       start=list(
                 twoCompFit=list(D1=c(1e-3,2),D2=c(1e-3,2),alpha=c(1e-3,1)))
                 )
+
+# repeat a fit
+a=fitCDF(cdf,components="two",output=F)
+b=fitCDF(cdf,components="two",output=F,seed=attr(a,"seed"))
+
+# if result are identical
+x=summary(a[[1]])
+y=summary(b[[1]])
+# formula records environment, exclude from the comparison
+mapply(identical,x[names(x)!="formula"],y[names(y)!="formula"])
 }
 

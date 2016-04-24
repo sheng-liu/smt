@@ -12,4 +12,4 @@ Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 Imports: ggplot2,dplyr,reshape2,gridExtra
 NeedsCompilation: no
-Packaged: 2016-04-18 23:11:07 UTC; shengliu
+Packaged: 2016-04-23 21:58:29 UTC; shengliu

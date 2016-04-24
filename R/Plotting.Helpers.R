@@ -310,6 +310,23 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 ## .
 ## from StackOverflow
 
+reorderEM=function(EM){
+
+    order.mu=order(EM$mu)
+    EM$mu=EM$mu[order.mu]
+    EM$lambda=EM$lambda[order.mu]
+    EM$sigma=EM$sigma[order.mu]
+    #colnames(EM$posterior)=colnames(EM$posterior)[order.mu]
+
+    # rather than change its name, should subset its content corder
+    EM$posterior=EM$posterior[,colnames(EM$posterior)[order.mu]]
+    # change to its name
+    colnames(EM$posterior)=sort(colnames(EM$posterior))
+
+    return(EM)
+
+}
+
 ## the polygon approach
 ##'@export gg.mixEM
 gg.mixEM <- function(EM,binwidth=NULL,reorder=T) {
@@ -318,22 +335,22 @@ gg.mixEM <- function(EM,binwidth=NULL,reorder=T) {
     # posterior based on mu (how human eyes specify the order), also reorder
     # EM's lambda, mu, sigma, making it consistant within.
 
-    reorderEM=function(EM){
-
-        order.mu=order(EM$mu)
-        EM$mu=EM$mu[order.mu]
-        EM$lambda=EM$lambda[order.mu]
-        EM$sigma=EM$sigma[order.mu]
-        #colnames(EM$posterior)=colnames(EM$posterior)[order.mu]
-
-        # rather than change its name, should subset its content corder
-        EM$posterior=EM$posterior[,colnames(EM$posterior)[order.mu]]
-        # change to its name
-        colnames(EM$posterior)=sort(colnames(EM$posterior))
-
-        return(EM)
-
-    }
+#     reorderEM=function(EM){
+#
+#         order.mu=order(EM$mu)
+#         EM$mu=EM$mu[order.mu]
+#         EM$lambda=EM$lambda[order.mu]
+#         EM$sigma=EM$sigma[order.mu]
+#         #colnames(EM$posterior)=colnames(EM$posterior)[order.mu]
+#
+#         # rather than change its name, should subset its content corder
+#         EM$posterior=EM$posterior[,colnames(EM$posterior)[order.mu]]
+#         # change to its name
+#         colnames(EM$posterior)=sort(colnames(EM$posterior))
+#
+#         return(EM)
+#
+#     }
 
     if (reorder==T) EM=reorderEM(EM)
 
