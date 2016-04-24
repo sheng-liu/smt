@@ -10,17 +10,22 @@
 ##' @description fit normal distribution to diffusion coefficient caclulated by Dcoef method.
 ##'
 ##' @usage
-##' fitNormDistr(dcoef,components=2,log.transform=F,output=F)
+##' fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F)
 ##' @param dcoef diffusion coefficient calculated from Dcoef().
-##' @param components parameter specifying the number of components to fit.
+##' @param components parameter specifying the number of components to fit. If NULL (default), a components analysis is done to determine the most likely components and this number is then used for subsequent analysis.
 ##' @param log.transform logical indicate if log10 transformation is needed, default F.
+##' @param binwidth binwidth for the combined plot. If NULL (default), will automatic assign binwidth.
 ##' @param output Logical indicaring if output file should be generated.
+##' @param combine.plot Logical indicating if all the plot should be combined into one, with same scale (/same axises breaks), same color theme, and same bin size for comparison.
+##'@details
+##'components analysis uses the likelihood ratio test (LRT) to assess the number of mixture components.
+##'
 ##' @return
 ##' \describe{
-##' \item{proportions}{The final mixing proportions.}
-##' \item{mean}{The final mean parameters.}
-##' \item{sd}{The final standard deviations.}
-##' \item{loglik}{The log likelihood.}
+##' \item{proportions}{The proportions of mixing components.}
+##' \item{mean}{The Means of the components.}
+##' \item{sd}{The Standard Deviations (SD) of components if not log transformed; if log transformed, it is then interpreted as Coefficient of Variation (CV).}
+##' \item{loglik}{The log likelihood, useful for compare different fitting result, the bigger the better fit.}
 ##' }
 
 ##' @examples
@@ -30,7 +35,9 @@
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
 ##' dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
-##' fitNormDistr(dcoef,components=2,log.transform=F,output=F)
+##' # fit dcoef
+##' set.seed(0)
+##' fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=T,output=F)
 
 ##' @export fitNormDistr
 ###############################################################################
@@ -38,14 +45,24 @@
 
 # library(mixtools)
 
+fitNormDistr=function(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F){
 
-fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
 
     # scale=1e3
-    mixmdl.lst=list()
     name=names(dcoef)
+    len=length(dcoef)
 
-    for (i in 1:length(dcoef)){
+    mixmdl.lst=list()
+    length(mixmdl.lst)=len
+    names(mixmdl.lst)=name
+
+    # store the standard error, currently only for components more than 2
+    mixmdl.se.lst=list()
+    length(mixmdl.se.lst)=len
+    names(mixmdl.se.lst)=name
+
+
+    for (i in 1:len){
 
         data=dcoef[[name[i]]][,"slope"]
 
@@ -53,9 +70,28 @@ fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
         if (log.transform==T) {
             data=log10(data)
             data=data[!is.na(data)]
-            }
+        }
 
-        if (components==1){
+        # components test
+        if (is.null(components)){
+
+            cat("\ncomponents analysis\n")
+            # verbose=T, add progress bar, it takes long
+            components.test=mclust::mclustBootstrapLRT(data,model = "V",verbose=T)
+            print(components.test)
+
+            components.int=length(components.test$p.value)
+            cat("\n\nmost likely components",components.int,"at significant level 0.05\n\n")
+        }else{
+            components.int=components
+        }
+
+
+        if (components.int==1){
+
+            cat("\nSMT v0.3 currently does not deal with fitting one component,\ncomponents sets to 2 automatically.\n")
+            components.int=2
+
 
             # this fit ignores the negative values
             # data=data[data>=0]
@@ -63,33 +99,42 @@ fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
             # mixmdl=fitdist(data*scale,"norm",method="mle")
             # small values need scaling, mme doesn't and generate the same fit.
 
-            mixmdl=fitdistrplus::fitdist(data,"norm",method="mme")
-            print(summary(mixmdl))
-
-            # denscomp(fitg,demp=T) or plot(mixmdl)
-            fitdistrplus::denscomp(mixmdl, addlegend=FALSE)
-            mixmdl.lst[[i]]=mixmdl
-
-        }else{
-
-            # convergence creteria epsilon = 1e-10 is to filter out false positives
-            mixmdl=normalmixEM(data,k=components,maxit=1e4,epsilon = 1e-10)
-            print(summary(mixmdl))
-            plot(mixmdl,which=2)
-            # mixmdl[c("mu","sigma","lambda")]
-            mixmdl.lst[[i]]=mixmdl
-
+            # these code needs to reformat to the same as components==2
+#             mixmdl=fitdistrplus::fitdist(data,"norm",method="mme")
+#             print(summary(mixmdl))
+#
+#             # denscomp(fitg,demp=T) or plot(mixmdl)
+#             fitdistrplus::denscomp(mixmdl, addlegend=FALSE)
+#             mixmdl.lst[[i]]=mixmdl
 
         }
 
+            # convergence creteria epsilon = 1e-10 is to filter out false positives
+            mixmdl=normalmixEM(data,k=components.int,maxit=1e4,epsilon = 1e-10)
+            print(summary(mixmdl))
+            # plot(mixmdl,which=2)
+            plot.mixEM=gg.mixEM(mixmdl,binwidth=binwidth,reorder=T)
+            # supprress warnings
+            # `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+                suppressMessages(plot(plot.mixEM))
+
+
+            # mixmdl[c("mu","sigma","lambda")]
+            mixmdl.lst[[i]]=mixmdl
+
+            # approximate standard error using parametic bootstrap
+            cat("\napproximating standard error by parametic bootstrap...\n\n")
+            capture.output({mixmdl.se=boot.se(mixmdl, B = 100)},
+                           file="/dev/null")
+
+            mixmdl.se.lst[[i]]=mixmdl.se
+
+
     }
 
-    names(mixmdl.lst)=name
-
-    # return(mixmdl.lst)
 
     # abstract result from the fitting model
-    if (components==1){
+    if (components.int==1){
 
         result.lst=lapply(mixmdl.lst,function(x){
             s=summary(x)
@@ -102,19 +147,89 @@ fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
 
     }else{
 
-        result.lst=lapply(mixmdl.lst,
-                         function(x){
-                             result=list(proportion=x$lambda,
-                                         mean=x$mu,
-                                         sd=x$sigma,
-                                         log.lik=x$loglik)
-                             if (log.transform) result$mean=10^(result$mean)
-                             result=do.call(cbind.data.frame,result)
-                             return(result)})
+
+        #         result.lst=lapply(mixmdl.lst,
+        #                          function(x){
+        #                              result=list(proportion=x$lambda,
+        #                                          mean=x$mu,
+        #                                          sd=x$sigma,
+        #                                          log.lik=x$loglik)
+        #                              if (log.transform) {
+        #                                  result$mean=10^(result$mean)
+        #
+        #                                  }
+        #                              result=do.call(cbind.data.frame,result)
+        #                              return(result)})
+
+
+        #names(result)[which(names(result)=="sd")]="cv"
+
+        result.lst=list()
+        length(result.lst)=len
+        names(result.lst)=name
+
+        for (i in 1:len){
+
+            result=list(
+                data.frame(proportion=mixmdl.lst[[i]]$lambda,
+                           proportion.se=mixmdl.se.lst[[i]]$lambda.se),
+
+                #  data.frame(mean=ifelse(log.transform,
+                #               10^(mixmdl.lst[[i]]$mu),mixmdl.lst[[i]]$mu),
+
+                data.frame(mean=if(log.transform) 10^(mixmdl.lst[[i]]$mu)
+                           else mixmdl.lst[[i]]$mu),
+                mean.se=as.vector(mixmdl.se.lst[[i]]$mu.se),
+
+
+                data.frame(sd=mixmdl.lst[[i]]$sigma,
+                           sd.se=mixmdl.se.lst[[i]]$sigma.se),
+
+                log.lik=mixmdl.lst[[i]]$loglik
+            )
+
+            result=t(do.call(cbind.data.frame,result))
+            result.lst[[i]]=result
+        }
+
     }
 
-    # return(result.lst)
     print(result.lst)
+
+    if (combine.plot==T){
+
+        # same scale, same binwidth, same breaks
+        ss=same.scale(mixmdl.lst)
+
+        # auto binwidth, smaller of the two
+        if (is.null(binwidth)) {
+            binwidth.vec=sapply(mixmdl.lst,function(mdl){
+                auto.binwidth(mdl$x)
+            })
+
+            binwidth=min(binwidth.vec)
+            cat("\ncombined binwidth =",binwidth,"\n")
+        }
+
+
+        plot.lst=lapply(mixmdl.lst,function(x){
+
+            p=gg.mixEM(x,binwidth=binwidth,reorder=T)+
+                # this only plot polygon but not histogram when ylim is added
+                # +xlim(ss$scale.x)+ylim(ss$scale.y)
+                coord_cartesian(xlim = ss$scale.x,ylim=ss$scale.y)+
+                # makes integer breaks at the maxium n
+                scale_x_continuous(breaks=scales::pretty_breaks(n=10))
+            return(p)
+        })
+
+        # plot
+        do.call(gridExtra::grid.arrange,plot.lst)
+        # save
+        cmb.plot=gridExtra::marrangeGrob(plot.lst, nrow=2, ncol=1)
+
+    }
+
 
     # output
     if (output==T){
@@ -124,15 +239,32 @@ fitNormDistr=function(dcoef,components=2,log.transform=F,output=F){
                        .timeStamp(name[1]),"....csv",sep="")
         cat("\nOutput FitNormDistr.\n")
         write.csv(file=fileName,result.df)
+
+        # output plot
+        if (combine.plot==T){
+
+            fileName=paste("FitNormDistr-combinePlot-",
+                           .timeStamp(name[1]),"....pdf",sep="")
+            cat("\nOutput FitNormDistr plot.\n")
+
+            # gridExtra::marrangeGrob non-interactive use, multipage pdf
+            # width=NULL,height=NULL default to graphic device size
+            ggsave(filename=fileName,cmb.plot,width=8,height=8)
+        }
+
+
     }
     # use invisible() so the user would not be overwhelmed by the numbers
-    # while programmers can assign the value and use it
+    # at the same time programmers can assign the value and use it
     return(invisible(mixmdl.lst))
 
 }
 
-## TODO
-## output csv files of result.lst
+# TODO:
+#     components=1 format
+
+
+
 
 
 

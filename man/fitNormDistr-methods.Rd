@@ -5,27 +5,34 @@
 \alias{fitNormDistr}
 \title{fitNormDistr}
 \usage{
-fitNormDistr(dcoef,components=2,log.transform=F,output=F)
+fitNormDistr(dcoef,components=NULL,log.transform=F,binwidth=NULL,combine.plot=F,output=F)
 }
 \arguments{
 \item{dcoef}{diffusion coefficient calculated from Dcoef().}
 
-\item{components}{parameter specifying the number of components to fit.}
+\item{components}{parameter specifying the number of components to fit. If NULL (default), a components analysis is done to determine the most likely components and this number is then used for subsequent analysis.}
 
 \item{log.transform}{logical indicate if log10 transformation is needed, default F.}
+
+\item{binwidth}{binwidth for the combined plot. If NULL (default), will automatic assign binwidth.}
+
+\item{combine.plot}{Logical indicating if all the plot should be combined into one, with same scale (/same axises breaks), same color theme, and same bin size for comparison.}
 
 \item{output}{Logical indicaring if output file should be generated.}
 }
 \value{
 \describe{
-\item{proportions}{The final mixing proportions.}
-\item{mean}{The final mean parameters.}
-\item{sd}{The final standard deviations.}
-\item{loglik}{The log likelihood.}
+\item{proportions}{The proportions of mixing components.}
+\item{mean}{The Means of the components.}
+\item{sd}{The Standard Deviations (SD) of components if not log transformed; if log transformed, it is then interpreted as Coefficient of Variation (CV).}
+\item{loglik}{The log likelihood, useful for compare different fitting result, the bigger the better fit.}
 }
 }
 \description{
 fit normal distribution to diffusion coefficient caclulated by Dcoef method.
+}
+\details{
+components analysis uses the likelihood ratio test (LRT) to assess the number of mixture components.
 }
 \examples{
 # compare folders
@@ -33,6 +40,8 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 trackll=compareFolder(c(folder1,folder2))
 dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
-fitNormDistr(dcoef,components=2,log.transform=F,output=F)
+# fit dcoef
+set.seed(0)
+fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=T,output=F)
 }
 

@@ -104,3 +104,32 @@ tracks.msda2smt=function(file){
     return(trackll.smt)
 
 }
+
+##------------------------------------------------------------------------------
+## same.scale
+
+same.scale=function(mixmdl.lst){
+
+    scale=list()
+    length(scale)=length(mixmdl.lst)
+    names(scale)=names(mixmdl.lst)
+
+    for (i in 1:length(mixmdl.lst)){
+
+        den=density(mixmdl.lst[[i]]$x)
+        scale.x=c(min=min(den$x),max=max(den$x))
+        scale.y=c(min=min(den$y),max=max(den$y))
+        scale[[i]]=data.frame(scale.x,scale.y)
+    }
+
+    scale.df=do.call(rbind.data.frame,scale)
+    scale.same=data.frame(apply(scale.df,2,function(x){
+        c(min=min(x),max=max(x))}))
+
+    return(scale.same)
+
+}
+
+
+
+

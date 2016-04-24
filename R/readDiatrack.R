@@ -36,6 +36,9 @@
 ##' @details
 ##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
 ##'
+##' Note: the folder name should not contain ".", as it is a key charactero for subsequent indexing of file names.
+##'
+##'
 ##' the absolute coordinates trajectory has moved
 ##'
 ##' trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll

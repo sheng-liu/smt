@@ -8,7 +8,8 @@ Maintainer: Sheng Liu <lius@janelia.hhmi.org>
 Description: single molecule tracking after imaging processing, it uses the outputs from image processing program, such as Diatrack, computes paramters that describes the movement of the moleclues.
 License: Artistic-2.0
 LazyData: TRUE
-Suggests: knitr,
-    rmarkdown
+Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
-Imports:ggplot2,dplyr,reshape2,gridExtra
+Imports: ggplot2,dplyr,reshape2,gridExtra
+NeedsCompilation: no
+Packaged: 2016-04-18 23:11:07 UTC; shengliu

@@ -306,3 +306,58 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     }
 }
 
+##------------------------------------------------------------------------------
+## .
+## from StackOverflow
+
+## the polygon approach
+##'@export gg.mixEM
+gg.mixEM <- function(EM,binwidth=NULL,reorder=T) {
+
+    # To make multiple ggmixEM plot have the same color theme,  reorder EM's
+    # posterior based on mu (how human eyes specify the order), also reorder
+    # EM's lambda, mu, sigma, making it consistant within.
+
+    reorderEM=function(EM){
+
+        order.mu=order(EM$mu)
+        EM$mu=EM$mu[order.mu]
+        EM$lambda=EM$lambda[order.mu]
+        EM$sigma=EM$sigma[order.mu]
+        #colnames(EM$posterior)=colnames(EM$posterior)[order.mu]
+
+        # rather than change its name, should subset its content corder
+        EM$posterior=EM$posterior[,colnames(EM$posterior)[order.mu]]
+        # change to its name
+        colnames(EM$posterior)=sort(colnames(EM$posterior))
+
+        return(EM)
+
+    }
+
+    if (reorder==T) EM=reorderEM(EM)
+
+    # reconstruct x, may use sample
+    x       <- with(EM,seq(min(x),max(x),len=1000))
+    # parameters holder
+    pars    <- with(EM,data.frame(comp=colnames(posterior), mu, sigma,lambda))
+
+    em.df   <- data.frame(x=rep(x,each=nrow(pars)),pars)
+
+    # reconstruct normal distribution with parameters
+    em.df$y <- with(em.df,lambda*dnorm(x,mean=mu,sd=sigma))
+
+
+    # auto binwidth
+    if (is.null(binwidth)) binwidth=auto.binwidth(EM$x)
+
+    ggplot(data.frame(x=EM$x),aes(x,y=..density..)) +
+        geom_histogram(fill=NA,color="black",binwidth=binwidth)+
+        # when distribution is truncated, it plots flippers
+        # geom_polygon(data=em.df,aes(x,y,fill=comp),color="grey50", alpha=0.5)+
+        geom_area(data=em.df,aes(x,y,fill=comp),color="grey50", alpha=0.5,position = "identity")+
+        scale_fill_discrete("Component\nMeans",labels=format(em.df$mu,digits=3))+
+        theme_bw()
+}
+
+# gg.mixEM(EM)
