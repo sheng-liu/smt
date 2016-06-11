@@ -287,7 +287,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
 
 
             if (length(grep("txt",rownames(n)[1]))==0){
-                Index=strsplit(rownames(n),"\\.")
+                Index=strsplit(rownames(n),split="[.]")  # split="\\."
 
             }else{
                 Index=strsplit(rownames(n),".txt.")

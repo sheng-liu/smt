@@ -9,6 +9,10 @@
 plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
 
 plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
+
+plotTrackOverlay(trackll,max.pixel=128)
+
+plotMask(mask.file,max.pixel=128)
 }
 \arguments{
 \item{resolution}{ratio of pixel to µM.}
@@ -26,6 +30,10 @@ plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.
 \item{index.file}{a csv file that contains index of tracks in the first column. Leave a header line when preparing such a file.}
 
 \item{movie.folder}{the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).}
+
+\item{mask.file}{path to the mask file.}
+
+\item{max.pixel}{Number of pixels of imaging regime.}
 }
 \value{
 \itemize{
@@ -37,6 +45,10 @@ Plot track/trajectory from track list. either randomly or specified.
 }
 \details{
 plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+
+plotTrackOverlay: plot all tracks in trackll overlaid on one plot.
+
+plotMask: plot image mask.
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
@@ -53,5 +65,18 @@ folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")
 index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
 plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
+
+# Not run:
+# masking with image mask
+# trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+# str(trackll.masked,1)
+
+# compare the masking effect
+# plotTrackOverlay(trackll)
+# plotTrackOverlay(trackll.masked)
+
+# plot mask
+# mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
+# plotMask(mask.file=mask.list[[1]])
 }
 

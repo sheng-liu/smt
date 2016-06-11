@@ -14,6 +14,10 @@
 ##'
 ##' plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
 ##'
+##' plotTrackOverlay(trackll,max.pixel=128)
+##'
+##' plotMask(mask.file,max.pixel=128)
+##'
 ##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
 ##' @param resolution ratio of pixel to µM.
 ##' @param frame.min minimum frame number for plotting.
@@ -22,6 +26,8 @@
 ##' @param frame.end last frame to plot. Default 500.
 ##' @param index.file a csv file that contains index of tracks in the first column. Leave a header line when preparing such a file.
 ##' @param movie.folder the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).
+##' @param mask.file path to the mask file.
+##' @param max.pixel Number of pixels of imaging regime.
 
 
 ##' @return
@@ -31,6 +37,10 @@
 
 ##' }
 ##' @details plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+##'
+##' plotTrackOverlay: plot all tracks in trackll overlaid on one plot.
+##'
+##' plotMask: plot image mask.
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
@@ -47,7 +57,19 @@
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
 ##' plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
-
+##'
+##' # Not run:
+##' # masking with image mask
+##' # trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+##' # str(trackll.masked,1)
+##'
+##' # compare the masking effect
+##' # plotTrackOverlay(trackll)
+##' # plotTrackOverlay(trackll.masked)
+##'
+##' # plot mask
+##' # mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
+##' # plotMask(mask.file=mask.list[[1]])
 
 
 ## @import reshape2
@@ -56,6 +78,9 @@
 ##' @export plotTrackFromIndex
 ## @import animation
 ## FUTURE: maybe plot on dt
+
+##' @export plotTrackOverlay
+##' @export plotMask
 
 
 ## TODO: make the function input as c(min,max)
@@ -100,12 +125,8 @@
 
 
 
-
-
-
-
-
-
+##------------------------------------------------------------------------------
+##
 
 plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500){
 
@@ -136,7 +157,8 @@ plotTrack=function(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.s
 
 }
 
-
+##------------------------------------------------------------------------------
+##
 
 ## plot trajectory according to index
 ## user need to put the corresponding movie files into a folder
@@ -203,6 +225,93 @@ plotTrackFromIndex=function(index.file, movie.folder=c(folder1,folder2,...),reso
 }
 
 
+##------------------------------------------------------------------------------
+##
+
+# must be list from one movie
+plotTrackOverlay=function(trackll,max.pixel=128){
+
+    if (length(trackll)>1){
+        cat("TrackOverlay only plots the first object in trackll list, \nuse trackll[n] to specifically nth object in the trackll list\n")
+
+        #; \nor use readDiatrack(...,merge=T) if plotting tracks from multiple videos is intended.
+
+    }
+    # TODO:merge trackll if it is of multiple length
+
+    track.df=do.call(rbind.data.frame,trackll[[1]])
+
+    n=track.df
+
+    if (length(grep("txt",rownames(n)[1]))==0){
+        Index=strsplit(rownames(n),"\\.")
+
+    }else{
+        Index=strsplit(rownames(n),".txt.")
 
 
+    }
+
+    # trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
+    Index=data.frame(do.call(rbind,Index))
+
+    colnames(Index)=c("fileID","frameID","duration","indexPerFile","indexPerTrackll","SN")
+
+    track.plot.df=cbind(track.df,Index)
+
+    ggplot(track.plot.df,aes(x=x,y=y,group=indexPerFile))+geom_path()+
+        #xlim(0,max.pixel)+ylim(0,max.pixel)+
+
+        scale_x_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel))+
+        scale_y_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel))+
+
+        # this makes integer breaks
+#        scale_x_continuous(breaks=scales::pretty_breaks(n=5))+
+#        scale_y_continuous(breaks=scales::pretty_breaks(n=5))+
+        #labs(x="Pixel", y="Pixel")+
+
+        theme_bw()
+
+
+}
+
+##------------------------------------------------------------------------------
+##
+
+# Plot mask
+plotMask=function(mask.file,max.pixel=128){
+
+    # read in tiff mask
+    # library(rtiff)
+    cat("Reading mask file...\n")
+    mask=rtiff::readTiff(fn=mask.file)
+    # plot(mask)
+
+    pospt=which(mask@red!=0,arr.ind=T)
+    pos.point=with(data.frame(pospt),data.frame(x=col,y=row))
+
+    # horizontal is the same vertical is fliped as the pixels is counted from
+    # upper left in the image, but is counted from lower left in the plot.
+
+    pp=ggplot(pos.point,aes(x=x,y=y))+geom_point(alpha=1,shape=22)+
+        scale_x_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel))+
+        scale_y_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel))+
+        theme_bw()
+
+    plot(pp)
+
+    return(invisible(pos.point))
+}
 

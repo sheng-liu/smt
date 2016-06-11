@@ -6,12 +6,14 @@
 \alias{readDiatrack}
 \title{readDiatrack}
 \usage{
-readDiatrack(folder,merge=F,ab.track=F)
+readDiatrack(folder,merge=F,ab.track=F,mask=F)
 }
 \arguments{
 \item{folder}{Full path to Diatrack output file.}
 
 \item{merge}{An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.}
+
+\item{mask}{An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.}
 }
 \value{
 \itemize{
@@ -40,5 +42,18 @@ This "indexPerTrackll" is the index within a trackll, which is unique.
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
 str(trackll,max.level=2)
+
+# Not run:
+# masking with image mask
+# trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+# str(trackll.masked,1)
+
+# compare the masking effect
+# plotTrackOverlay(trackll)
+# plotTrackOverlay(trackll.masked)
+
+# plot mask
+# mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
+# plotMask(mask.file=mask.list[[1]])
 }
 

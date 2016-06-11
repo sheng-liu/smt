@@ -11,10 +11,13 @@
 ##'
 ##' @description read output file (tracks/trajecotries) from Diatrack.
 
-##' @usage readDiatrack(folder,merge=F,ab.track=F)
+##' @usage readDiatrack(folder,merge=F,ab.track=F,mask=F)
+##'
+##'
 ##' @method # this roxygen directive does not working
 ##' @param folder Full path to Diatrack output file.
 ##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
+##' @param mask An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.
 
 ##' @return
 ##' \itemize{
@@ -32,6 +35,21 @@
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
 ##' str(trackll,max.level=2)
+##'
+##' # Not run:
+##' # masking with image mask
+##' # trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+##' # str(trackll.masked,1)
+##'
+##' # compare the masking effect
+##' # plotTrackOverlay(trackll)
+##' # plotTrackOverlay(trackll.masked)
+##'
+##' # plot mask
+##' # mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
+##' # plotMask(mask.file=mask.list[[1]])
+
+
 
 ##' @details
 ##' default merge = FALSE, so the researcher can assay variations between files. Keep both output as two level list is for simplicity of downstream analysis.
@@ -46,9 +64,8 @@
 ##' This "indexPerFile" is the index within a diatrackFile.
 ##'
 ##' This "indexPerTrackll" is the index within a trackll, which is unique.
+##'
 
-##' @import ggplot2
-##' @import dplyr
 ##' @export readDiatrack
 ##'
 
@@ -84,7 +101,6 @@
     # store num.tracks.per.file
     num.tracks.per.file=c()
 
-
     # select 3 column at a time
     # can use frame number to do this, but this way makes the program more
     # robust with little to non decrease in efficiency
@@ -94,15 +110,19 @@
         #i=2
 
         triple=i*3
-        track=select(data,(triple-3+1):triple)
+        track=dplyr::select(data,(triple-3+1):triple)
         colnames(track)=c("x","y","z")
-        track=filter(track,x!=0,y!=0)
+        track=dplyr::filter(track,x!=0,y!=0)
 
         # the [[]] is important, otherwise only x is included
         track.list[[i]]=track
 
+
+
+
         # store num.tracks.per.file
         num.tracks.per.file[i]=dim(track)[1]
+
 
         ## preprocess to fix coordinates from 0 to max
         ## absolute value of trajectory movement
@@ -146,74 +166,204 @@
 
 }
 
+##------------------------------------------------------------------------------
+##
+# read in mask and derive positive pix form a mask
+maskPoint=function(mask.file,plot=F){
 
+    # read in tiff mask
+    # library(rtiff)
+    cat("Reading mask file...\n")
+    mask=rtiff::readTiff(fn=mask.file)
+    # plot(mask)
+
+    pospt=which(mask@red!=0,arr.ind=T)
+    pos.point=with(data.frame(pospt),data.frame(x=col,y=row))
+
+    # horizontal is the same vertical is fliped as the pixels is counted from
+    # upper left in the image, but is counted from lower left in the plot.
+    if (plot) {
+        plot(mask)
+        plot(x=pos.point$x,y=pos.point$y)
+        #ggplot(pos.point,aes(x=x,y=y))+geom_point()
+    }
+
+    return(pos.point)
+}
+
+##------------------------------------------------------------------------------
+##
+# Use each trajectory's geometric center as unit for clusterization.
+# Each data point is an averaged trajectory.
+
+trackCenter=function(trackll){
+
+    # arithmetic mean for geometric center (centroid)
+    track.center=list()
+    length(track.center)=length(trackll)
+    names(track.center)=names(trackll)
+
+    for (i in 1:length(trackll)){
+        track.center[[i]]=lapply(trackll[[i]],function(x){
+            # round coords
+            apply(x,2,function(coord){round(mean(coord))})})
+    }
+
+    return(track.center)
+}
+
+
+##------------------------------------------------------------------------------
+##
+
+maskTracks=function(trackll,maskl){
+
+    mask.track.index=list()
+    length(mask.track.index)=length(trackll)
+    names(mask.track.index)=names(trackll)
+
+    masked.tracks=list()
+    length(masked.tracks)=length(trackll)
+    names(masked.tracks)=names(trackll)
+
+
+    for (i in 1:length(trackll)){
+        track.center=trackCenter(trackll)[[i]]
+        pos.point=maskPoint(maskl[[i]],plot=F)
+        mask.track.index[[i]]=posTracks(track.center,pos.point)
+
+        index=rownames(mask.track.index[[i]])
+
+        masked.tracks[[i]]=lapply(trackll[i],function(x){x[index]})[[1]]
+
+    }
+
+    return(masked.tracks)
+
+}
 
 
 ##------------------------------------------------------------------------------
 ## Note:the list can be named, this wil change the read.distrack.folder 's naming
 ## no need for naming it
 
-readDiatrack=function(folder,merge= F,ab.track=F){
+# the mask file has to be named corresponding to its txt file name to work correspondingly. as it is read into two list, file.list, and mask.list. there is not direct comparison of file name function add in yet in v0.3.4
+
+readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
 
     trackll=list()
     track.holder=c()
 
     # getting a file list of Diatrack files in a directory
-    file.list <- list.files(path = folder,pattern = ".txt",full.names = T  )
-    file.name = list.files(path=folder, pattern=".txt",full.names=F)
-    folder.name = basename(folder)
+    file.list=list.files(path=folder,pattern=".txt",full.names=T)
+    file.name=list.files(path=folder,pattern=".txt",full.names=F)
+    folder.name=basename(folder)
 
-    if (merge == F){
+    # read in mask
+    mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
 
-        # list of list of data.frames,
-        # first level list of file names and
-        # second level list of data.frames
+    if (mask==T & length(mask.list)==0){
+        cat("No image mask file ending '_MASK.tif' found.\n")
 
+    }
+
+
+    # read in tracks
+    # list of list of data.frames,
+    # first level list of file names and
+    # second level list of data.frames
+
+    for (i in 1:length(file.list)){
+
+        track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+
+        # add indexPerTrackll to track name
+        indexPerTrackll=1:length(track)
+        names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+
+        trackll[[i]]=track
+        names(trackll)[i]=file.name[i]
+    }
+
+
+    # trackll naming scheme
+    # if merge==F, list takes the name of individual file name within folder
+    # file.name > data.frame.name
+    # if merge==T, list takes the folder name
+    # folder.name > data.frame.name
+
+    # filtration by image mask
+    if (mask==T){
+        trackll=maskTracks(trackll=trackll,maskl=mask.list)
+    }
+
+    # merge masked tracks
+    # merge has to be done after mask
+
+    if (merge==T){
+
+
+        # concatenate track list into one list of data.frames
         for (i in 1:length(file.list)){
-
-            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
-
-            # add indexPerTrackll to track name
-            indexPerTrackll=1:length(track)
-            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
-
-            trackll[[i]]=track
-            names(trackll)[i]=file.name[i]
+            track.holder=c(track.holder,trackll[[i]])
         }
 
-        # trackll naming scheme
-        # if merge==F, list takes the name of individual file name within folder
-        # file.name > data.frame.name
-        # if merge==T, list takes the folder name
-        # folder.name > data.frame.name
+        # rename indexPerTrackll of index
+        # extrac index
+        Index=strsplit(names(track.holder),split="[.]")  # split="\\."
 
-    }else{
-
-        # list of list of data.frames,
-        # first level list of folder names and
-        # second level list of data.frames
-
-        for (i in 1:length(file.list)){
-
-            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
-            # concatenate tracks into one list of data.frames
-            track.holder=c(track.holder,track)
-
-        }
+        # remove the last old indexPerTrackll
+        Index=lapply(Index,function(x){
+            x=x[1:(length(x)-1)]
+            x=paste(x,collapse=".")})
 
         # add indexPerTrackll to track name
         indexPerTrackll=1:length(track.holder)
-
-        names(track.holder)=mapply(paste,names(track.holder),
+        names(track.holder)=mapply(paste,Index,
                                    indexPerTrackll,sep=".")
 
         # make the result a list of list with length 1
+        trackll=list()
         trackll[[1]]=track.holder
         names(trackll)[[1]]=folder.name
 
-        # can put file name into name of the tracks
-        # filename was put into the name of the tracks
+        # trackll=track.holder
     }
+
+
+
+    #     }else{
+    #
+    #         # list of list of data.frames,
+    #         # first level list of folder names and
+    #         # second level list of data.frames
+    #
+    #         for (i in 1:length(file.list)){
+    #
+    #             track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+    #             # concatenate tracks into one list of data.frames
+    #             track.holder=c(track.holder,track)
+    #
+    #         }
+    #
+    #         # add indexPerTrackll to track name
+    #         indexPerTrackll=1:length(track.holder)
+    #
+    #         names(track.holder)=mapply(paste,names(track.holder),
+    #                                    indexPerTrackll,sep=".")
+    #
+    #         # make the result a list of list with length 1
+    #         trackll[[1]]=track.holder
+    #         names(trackll)[[1]]=folder.name
+    #
+
+    #
+    #
+    #         if (mask==T){
+    #             trackll=maskTracks(trackll,mask.list)
+    #         }
+    #
+    #     }
 
     return(trackll)
 }
