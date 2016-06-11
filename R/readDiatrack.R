@@ -188,6 +188,7 @@ maskPoint=function(mask.file,plot=F){
         #ggplot(pos.point,aes(x=x,y=y))+geom_point()
     }
 
+
     return(pos.point)
 }
 
@@ -212,6 +213,52 @@ trackCenter=function(trackll){
     return(track.center)
 }
 
+
+##------------------------------------------------------------------------------
+##
+
+maskTracks=function(trackll,maskl){
+
+    mask.track.index=list()
+    length(mask.track.index)=length(trackll)
+    names(mask.track.index)=names(trackll)
+
+    return(pos.point)
+}
+
+##------------------------------------------------------------------------------
+##
+# Use each trajectory's geometric center as unit for clusterization.
+# Each data point is an averaged trajectory.
+
+trackCenter=function(trackll){
+
+    # arithmetic mean for geometric center (centroid)
+    track.center=list()
+    length(track.center)=length(trackll)
+    names(track.center)=names(trackll)
+
+    for (i in 1:length(trackll)){
+        track.center[[i]]=lapply(trackll[[i]],function(x){
+            # round coords
+            apply(x,2,function(coord){round(mean(coord))})})
+    }
+
+    return(track.center)
+}
+
+##------------------------------------------------------------------------------
+##
+# track.center and pos.point should be one to one cooresponding
+posTracks=function(track.center,pos.point){
+
+    # convert list to data.frame
+    track.center.df=do.call(rbind.data.frame,track.center)
+    names(track.center.df)=c("x","y","z")
+    pos.tracks=plyr::match_df(track.center.df,pos.point,on=c("x","y"))
+    return(pos.tracks)
+
+}
 
 ##------------------------------------------------------------------------------
 ##
@@ -302,6 +349,26 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
 
     if (merge==T){
 
+        trackll[[i]]=track
+        names(trackll)[i]=file.name[i]
+    }
+
+
+    # trackll naming scheme
+    # if merge==F, list takes the name of individual file name within folder
+    # file.name > data.frame.name
+    # if merge==T, list takes the folder name
+    # folder.name > data.frame.name
+
+    # filtration by image mask
+    if (mask==T){
+        trackll=maskTracks(trackll=trackll,maskl=mask.list)
+    }
+
+    # merge masked tracks
+    # merge has to be done after mask
+
+    if (merge==T){
 
         # concatenate track list into one list of data.frames
         for (i in 1:length(file.list)){
