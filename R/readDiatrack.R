@@ -11,13 +11,14 @@
 ##'
 ##' @description read output file (tracks/trajecotries) from Diatrack.
 
-##' @usage readDiatrack(folder,merge=F,ab.track=F,mask=F)
+##' @usage readDiatrack(folder,merge=F,ab.track=F,mask=F,cores=1)
 ##'
 ##'
 ##' @method # this roxygen directive does not working
 ##' @param folder Full path to Diatrack output file.
 ##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
 ##' @param mask An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.
+##' @param cores Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster.
 
 ##' @return
 ##' \itemize{
@@ -67,7 +68,7 @@
 ##'
 
 ##' @export readDiatrack
-##'
+##' @export .readDiatrack
 
 ###############################################################################
 
@@ -291,12 +292,14 @@ maskTracks=function(trackll,maskl){
 
 
 ##------------------------------------------------------------------------------
-## Note:the list can be named, this wil change the read.distrack.folder 's naming
-## no need for naming it
+## Note:the list can be named, this wil change the read.distrack.folder 's
+## naming no need for naming it
 
-# the mask file has to be named corresponding to its txt file name to work correspondingly. as it is read into two list, file.list, and mask.list. there is not direct comparison of file name function add in yet in v0.3.4
+# the mask file has to be named corresponding to its txt file name to work
+# correspondingly. as it is read into two list, file.list, and mask.list. there
+# is not direct comparison of file name function add in yet in v0.3.4
 
-readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
+readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
 
     trackll=list()
     track.holder=c()
@@ -320,18 +323,69 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
     # first level list of file names and
     # second level list of data.frames
 
-    for (i in 1:length(file.list)){
+#     for (i in 1:length(file.list)){
+#
+#         track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+#
+#         # add indexPerTrackll to track name
+#         indexPerTrackll=1:length(track)
+#         names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+#
+#         trackll[[i]]=track
+#         names(trackll)[i]=file.name[i]
+#     }
 
-        track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+    # parallel this block of code
+    # assign reading in using .readDiatrack to each CPUs
 
-        # add indexPerTrackll to track name
-        indexPerTrackll=1:length(track)
-        names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+    # detect number of cores
 
-        trackll[[i]]=track
-        names(trackll)[i]=file.name[i]
+    # if more than one, automatic using multicore
+
+    if (cores>1){
+
+        max.cores=parallel::detectCores(logical=F)
+        if (cores>max.cores)
+            stop("Number of cores specified is greater than recomended maxium: ",max.cores)
+
+
+        cat("Initiated parallel execution on", cores, "cores\n")
+        # use outfile=" to display result on screen
+        cl <- parallel::makeCluster(spec=cores,type="PSOCK",outfile="")
+        # register cluster
+        parallel::setDefaultCluster(cl)
+
+        # pass environment variables to workers
+        parallel::clusterExport(cl,varlist=c(".readDiatrack","ab.track"),envir=environment())
+
+        trackll=parallel::parLapply(cl,file.list,function(fname){
+            track=.readDiatrack(file=fname,ab.track=ab.track)
+            # add indexPerTrackll to track name
+            indexPerTrackll=1:length(track)
+            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+            return(track)
+        })
+
+        # stop cluster
+        cat("Stop clusters...\n")
+        parallel::stopCluster(cl)
+
+        names(trackll)=file.name
+
+    }else{
+
+        for (i in 1:length(file.list)){
+
+            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
+
+            # add indexPerTrackll to track name
+            indexPerTrackll=1:length(track)
+            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
+
+            trackll[[i]]=track
+            names(trackll)[i]=file.name[i]
+        }
     }
-
 
     # trackll naming scheme
     # if merge==F, list takes the name of individual file name within folder
@@ -339,7 +393,7 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
     # if merge==T, list takes the folder name
     # folder.name > data.frame.name
 
-    # filtration by image mask
+    # clearning tracks by image mask
     if (mask==T){
         trackll=maskTracks(trackll=trackll,maskl=mask.list)
     }
@@ -396,8 +450,6 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F){
 
         # trackll=track.holder
     }
-
-
 
     #     }else{
     #

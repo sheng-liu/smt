@@ -126,8 +126,8 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 
 
     cat("\napplying percentage,",percentage,"\n")
-    ## filtration of tracks using filter
-    trackll=filtration(trackll,filter=filter)
+    ## filterTrack of tracks using filter
+    trackll=filterTrack(trackll,filter=filter)
 
     #determine the length of each trajectory N then compute first 25% N's
     #msd, manipulate N before hand, then pass in the N vector to dt
@@ -266,7 +266,7 @@ rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
         # to varify the fit
         # fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
 
-        ## the next two filtration blocks maybe combined to increase efficiency,
+        ## the next two filterTrack blocks maybe combined to increase efficiency,
         ## however for now the efficiency is secondary, let the logic stand
         ## clear, then improve the efficiency. as many times efficiency is at
         ## the expense of sacrifice clearness of the code, hard to read or

@@ -6,7 +6,7 @@
 \alias{readDiatrack}
 \title{readDiatrack}
 \usage{
-readDiatrack(folder,merge=F,ab.track=F,mask=F)
+readDiatrack(folder,merge=F,ab.track=F,mask=F,cores=1)
 }
 \arguments{
 \item{folder}{Full path to Diatrack output file.}
@@ -14,6 +14,8 @@ readDiatrack(folder,merge=F,ab.track=F,mask=F)
 \item{merge}{An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.}
 
 \item{mask}{An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.}
+
+\item{cores}{Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster.}
 }
 \value{
 \itemize{

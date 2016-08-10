@@ -5,12 +5,14 @@
 \alias{compareFolder}
 \title{compareFolder}
 \usage{
-compareFolder(folders=c(folder1,folder2,...),ab.track=F)
+compareFolder(folders=c(folder1,folder2,...),ab.track=F,cores=1)
 }
 \arguments{
 \item{folders}{a vector storing paths to the folders location."..." indicates multiple (unlimited) folders can be added into the function.}
 
 \item{ab.track}{a Logical indicating if absolute coordinates should be used.}
+
+\item{cores}{Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster.}
 }
 \value{
 \itemize{

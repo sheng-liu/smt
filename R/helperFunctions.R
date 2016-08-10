@@ -52,36 +52,10 @@
 
 
 
-##------------------------------------------------------------------------------
-## filtration
 
-## a function to filter trackll based on specified fitler value (filtration on track length), default 6 frames/steps to Inf
-
-##' @export filtration
-filtration=function(trackll,filter=c(min=7,max=Inf)){
-
-    #filter=match.arg(filter)
-
-    # reinforce name
-    names(filter)=c("min","max")
-
-    cat("applying filter, min",filter["min"],"  max",filter["max"],"\n")
-
-
-    track.len=list()
-    for (i in 1:length(trackll)){
-        track.len[[i]]=sapply(trackll[[i]],function(track){dim(track)[1]})
-        trackll[[i]]=trackll[[i]][ track.len[[i]]>=filter["min"] & track.len[[i]]<filter["max"] ]
-   }
-
-    return(trackll)
-}
-
-
-# no need for the focus swtich, as one can simply filter on a number that is bigger than the dt he wanted to draw on
 
 ##------------------------------------------------------------------------------
-## filtration
+## tracks.msda2smt
 
 ##' @export tracks.msda2smt
 tracks.msda2smt=function(file){
@@ -143,6 +117,5 @@ seedIt=function(expr,seed){
     cat(note)
     structure(expr, seed=seed)
 }
-
 
 

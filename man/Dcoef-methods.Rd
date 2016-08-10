@@ -17,7 +17,7 @@ Dcoef( trackll,dt=6,filter=c(min=7,max=Inf),rsquare=0.8,resolution=0.107,
 
 \item{filter}{a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.}
 
-\item{rsquare}{rsquare filtration on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filtration is not desired.}
+\item{rsquare}{rsquare filter on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filter is not desired.}
 
 \item{resolution}{ratio of pixel to µM.}
 

@@ -18,7 +18,7 @@
 ##' @param trackll Track list output from readDiatrack().
 ##' @param dt Time intervals.
 ##' @param filter a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.
-##' @param rsquare rsquare filtration on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filtration is not desired.
+##' @param rsquare rsquare filter on Dcoef results. Default to be 0.8. Set value to 0 if rsquare filter is not desired.
 ##' @param resolution ratio of pixel to µM.
 ##' @param lag.start time lag used as start of dt for compute Dcoef.
 ##' @param lag.end Time lag used as end of dt for compute Dcoef.

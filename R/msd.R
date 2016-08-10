@@ -262,8 +262,8 @@ msd.trackll=function(trackll,dt=6,resolution=0.107){
 
 msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,output=F){
 
-    ## filtration of tracks using filter
-    trackll=filtration(trackll,filter=filter)
+    ## filterTrack
+    trackll=filterTrack(trackll,filter=filter)
 
     MSD=msd.trackll(trackll,dt=dt,resolution=resolution)
     file.name=names(trackll)
@@ -386,8 +386,8 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
 ##' @export msd.vecdt
 msd.vecdt=function(trackll,vecdt=NULL,resolution=0.107,filter=c(min=7,max=Inf),output=F){
 
-    ## filtration of tracks using filter
-    trackll=filtration(trackll,filter=filter)
+    ## filterTrack
+    trackll=filterTrack(trackll,filter=filter)
 
 
     ## dt is in a list, track is in a list, use i j system maybe better
