@@ -259,8 +259,18 @@ rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
 
         # the "still" molecule wil generate a NA in correlation, thus is.na(x)==F
         corr.filter=lapply(corr,function(x){x>=rsquare & is.na(x)==F})
-        D.inst.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
+        D.inst.slope.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
 
+        # add corr also in the output
+        D.inst.corr.subset=mapply("[",corr,corr.filter,SIMPLIFY=F)
+
+        D.inst.subset=mapply(cbind,D.inst.slope.subset,D.inst.corr.subset,SIMPLIFY=F)
+        # add colnames
+        D.inst.subset=lapply(D.inst.subset,function(x){
+            colnames(x)=c("slope","corr")
+            return(x)})
+
+        #TODO: NOTE static==F, it still only outputs slope only. need to add corr to that one.
    }else{
 
         # to varify the fit

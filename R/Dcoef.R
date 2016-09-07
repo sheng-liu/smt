@@ -165,7 +165,9 @@ Dcoef=function(
 
 
     D.coef.subset=rsquare.filter(D.coef,rsquare=rsquare,static=static)
-    Log.D.coef=Dcoef.log(D.coef.subset,static=static)
+    D.coef.subset.slope=lapply(D.coef.subset,function(x){x[,"slope"]})
+
+    Log.D.coef=Dcoef.log(D.coef.subset.slope,static=static)
 
 
 ##------------------------------------------------------------------------------
@@ -205,13 +207,14 @@ Dcoef=function(
         # output csv
         for (i in 1:length(trackll)){
             fileName=paste("Dcoef-",.timeStamp(names(trackll)[i]),".csv",sep="")
-            write.csv(file=fileName,D.coef[[i]])
+            write.csv(file=fileName,D.coef.subset[[i]])
         }
 
 
     }
 
-    return(D.coef)
+    return(D.coef.subset)
+    # if no subsetting is intended, select rsquare=0
 }
 
 

@@ -14,9 +14,9 @@
 ##'
 ##' plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
 ##'
-##' plotTrackOverlay(trackll,max.pixel=128)
+##' plotTrackOverlay(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 ##'
-##' plotMask(mask.file,max.pixel=128)
+##' plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 ##'
 ##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
 ##' @param resolution ratio of pixel to µM.
@@ -28,6 +28,10 @@
 ##' @param movie.folder the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).
 ##' @param mask.file path to the mask file.
 ##' @param max.pixel Number of pixels of imaging regime.
+##' @param nrow Number of rows in the final plot.
+##' @param ncol Number of colums in the final plot.
+##' @param width Width of the page for plotting.
+##' @param height Height of the page for plotting.
 
 
 ##' @return
@@ -58,18 +62,31 @@
 ##' index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
 ##' plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 ##'
-##' # Not run:
-##' # masking with image mask
+##' ## masking with image mask
+##' ## Not run:
+##' ## download Diatrack output txt file and mask
+##' ## save file to a location on local computer corresponding to your operation system
+##'
+##' # mask.url="https://www.dropbox.com/s/6472kweldoh96xd/SWR1_halo_140mW3_20151025_SWR1WT_Substack%20%28400-5800%29_MASK.tif?dl=0"
+##' # data.url="https://www.dropbox.com/s/lav6f0y4gd4j4lt/SWR1_halo_140mW3_20151025_SWR1WT_Substack%20%28400-5800%29.txt?dl=0"
+##'
+##' # dir.create("~/masking_test/")
+##' # download.file(mask.url, "~/masking_test/_MASK.tif")
+##' # download.file(data.url, "~/masking_test/_DATA.txt")
+##' # track.folder="~/masking_test/"
+##'
+##' ## masking with image mask
+##' # trackll=readDiatrack(folder=track.folder,merge=F,mask=F)
 ##' # trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+##' # str(trackll,1)
 ##' # str(trackll.masked,1)
 ##'
-##' # compare the masking effect
-##' # plotTrackOverlay(trackll)
-##' # plotTrackOverlay(trackll.masked)
+##' ## compare the masking effect
+##' # plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
+##' # plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
 ##'
-##' # plot mask
-##' # mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
-##' # plotMask(mask.file=mask.list[[1]])
+##' ## plot mask
+##' # plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
 
 
 ## @import reshape2
@@ -81,6 +98,8 @@
 
 ##' @export plotTrackOverlay
 ##' @export plotMask
+
+# .plotMask(mask.list[1])
 
 
 ## TODO: make the function input as c(min,max)
@@ -229,15 +248,16 @@ plotTrackFromIndex=function(index.file, movie.folder=c(folder1,folder2,...),reso
 ##
 
 # must be list from one movie
-plotTrackOverlay=function(trackll,max.pixel=128){
+# TrackOverlay only plots the first object in trackll list,
+# use trackll[n] to specifically nth object in the trackll list
 
-    if (length(trackll)>1){
-        cat("TrackOverlay only plots the first object in trackll list, \nuse trackll[n] to specifically nth object in the trackll list\n")
+.plotTrackOverlay=function(trackll,max.pixel=128){
 
-        #; \nor use readDiatrack(...,merge=T) if plotting tracks from multiple videos is intended.
 
-    }
-    # TODO:merge trackll if it is of multiple length
+    # get names of the trackll (/video) to put it on each graph
+    plot.title=names(trackll)
+
+    cat("\nProcessing",plot.title)
 
     track.df=do.call(rbind.data.frame,trackll[[1]])
 
@@ -249,7 +269,6 @@ plotTrackOverlay=function(trackll,max.pixel=128){
     }else{
         Index=strsplit(rownames(n),".txt.")
 
-
     }
 
     # trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
@@ -259,8 +278,7 @@ plotTrackOverlay=function(trackll,max.pixel=128){
 
     track.plot.df=cbind(track.df,Index)
 
-    ggplot(track.plot.df,aes(x=x,y=y,group=indexPerFile))+geom_path()+
-        #xlim(0,max.pixel)+ylim(0,max.pixel)+
+    p=ggplot(track.plot.df,aes(x=x,y=y,group=indexPerFile))+geom_path()+
 
         scale_x_continuous(
             name="Pixel",
@@ -271,6 +289,8 @@ plotTrackOverlay=function(trackll,max.pixel=128){
             breaks=seq(from=0, to=max.pixel,by=20),
             limits=c(0,max.pixel))+
 
+        ggtitle(plot.title)+
+
         # this makes integer breaks
 #        scale_x_continuous(breaks=scales::pretty_breaks(n=5))+
 #        scale_y_continuous(breaks=scales::pretty_breaks(n=5))+
@@ -278,18 +298,46 @@ plotTrackOverlay=function(trackll,max.pixel=128){
 
         theme_bw()
 
+        return(p)
 
 }
+
+
+# mask and unmask needs to be done before plotting to save time on reading in data
+# plot multiple trackl (videos)
+
+plotTrackOverlay=function(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16){
+
+    # get plot.lst
+    plot.lst=list()
+
+    for (i in 1:length(trackll)) plot.lst[[i]]=.plotTrackOverlay(trackll[i],max.pixel=max.pixel)
+
+    # output
+    cat("\nOutput combined plot...")
+    cmb.plot=gridExtra::marrangeGrob(plot.lst,nrow=nrow,ncol=ncol)
+
+    fileName=paste(.timeStamp("TrackOverlay"),".pdf",sep="")
+    # TODO: add folder name in .timeStamp
+    # fileName=paste("TrackOverlay-",.timeStamp("folder"),".pdf",sep="")
+
+    ggplot2::ggsave(filename=fileName,cmb.plot,width=width,height=height)
+
+    cat("\nDone!")
+
+}
+
 
 ##------------------------------------------------------------------------------
 ##
 
 # Plot mask
-plotMask=function(mask.file,max.pixel=128){
+.plotMask=function(mask.file,max.pixel=128){
 
+    title=basename(mask.file)
     # read in tiff mask
     # library(rtiff)
-    cat("Reading mask file...\n")
+    cat("\nReading mask file",title)
     mask=rtiff::readTiff(fn=mask.file)
     # plot(mask)
 
@@ -298,6 +346,9 @@ plotMask=function(mask.file,max.pixel=128){
 
     # horizontal is the same vertical is fliped as the pixels is counted from
     # upper left in the image, but is counted from lower left in the plot.
+
+    # shape 22 is little square, when squeezed, they have misconsumption of smaller squres
+    # shape 46 is the smallest dot, even when squeezed
 
     pp=ggplot(pos.point,aes(x=x,y=y))+geom_point(alpha=1,shape=22)+
         scale_x_continuous(
@@ -308,10 +359,37 @@ plotMask=function(mask.file,max.pixel=128){
             name="Pixel",
             breaks=seq(from=0, to=max.pixel,by=20),
             limits=c(0,max.pixel))+
+        ggtitle(title)+
         theme_bw()
 
     plot(pp)
 
-    return(invisible(pos.point))
+
+
+    # return plot for better manipulation downstream
+    # return(invisible(pos.point))
+    return(pp)
+
 }
+
+
+
+plotMask=function(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16){
+
+    mask.lst=list.files(path=folder,pattern="_MASK.tif",full.names=T)
+
+    mask.plot.lst=lapply(mask.lst,.plotMask,max.pixel=max.pixel)
+
+    cmb.plot.mask=gridExtra::marrangeGrob(mask.plot.lst,nrow=nrow,ncol=ncol)
+
+    fileName=paste(.timeStamp("TrackMask"),".pdf",sep="")
+
+    ggsave(filename=fileName,cmb.plot.mask,width=width,height=height)
+
+    cat("\nDone!")
+}
+
+
+
+
 

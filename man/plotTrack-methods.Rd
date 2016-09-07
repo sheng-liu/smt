@@ -10,9 +10,9 @@ plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,fr
 
 plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
 
-plotTrackOverlay(trackll,max.pixel=128)
+plotTrackOverlay(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 
-plotMask(mask.file,max.pixel=128)
+plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 }
 \arguments{
 \item{resolution}{ratio of pixel to µM.}
@@ -34,6 +34,14 @@ plotMask(mask.file,max.pixel=128)
 \item{mask.file}{path to the mask file.}
 
 \item{max.pixel}{Number of pixels of imaging regime.}
+
+\item{nrow}{Number of rows in the final plot.}
+
+\item{ncol}{Number of colums in the final plot.}
+
+\item{width}{Width of the page for plotting.}
+
+\item{height}{Height of the page for plotting.}
 }
 \value{
 \itemize{
@@ -66,17 +74,30 @@ folder2=system.file("extdata","HTZ1",package="smt")
 index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
 plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 
-# Not run:
-# masking with image mask
+## masking with image mask
+## Not run:
+## download Diatrack output txt file and mask
+## save file to a location on local computer corresponding to your operation system
+
+# mask.url="https://www.dropbox.com/s/6472kweldoh96xd/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29_MASK.tif?dl=0"
+# data.url="https://www.dropbox.com/s/lav6f0y4gd4j4lt/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29.txt?dl=0"
+
+# dir.create("~/masking_test/")
+# download.file(mask.url, "~/masking_test/_MASK.tif")
+# download.file(data.url, "~/masking_test/_DATA.txt")
+# track.folder="~/masking_test/"
+
+## masking with image mask
+# trackll=readDiatrack(folder=track.folder,merge=F,mask=F)
 # trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+# str(trackll,1)
 # str(trackll.masked,1)
 
-# compare the masking effect
-# plotTrackOverlay(trackll)
-# plotTrackOverlay(trackll.masked)
+## compare the masking effect
+# plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
+# plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
 
-# plot mask
-# mask.list=list.files(path=folder,pattern="_MASK.tif",full.names=T)
-# plotMask(mask.file=mask.list[[1]])
+## plot mask
+# plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
 }
 
