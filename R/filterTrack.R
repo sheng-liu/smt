@@ -91,6 +91,8 @@ trimTrack=function(trackll,trimmer=c(min=1,max=25)){
 
 
     trackll.trim=list()
+    length(trackll.trim)=length(trackll)
+    names(trackll.trim)=names(trackll)
     for (i in 1:length(trackll)){
         trackll.trim[[i]]=lapply(trackll[[i]],.trimTrack,
                                  min=trimmer["min"],max=trimmer["max"])

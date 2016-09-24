@@ -35,6 +35,13 @@ for detail.}
 \description{
 calculate cumulative distribution function of all displacement for individual trajectories.
 }
+\details{
+The cumulative radial distribution function, P(r, i△t), is the probability of finding the diffusing particle within a radius r from the origin at time lag i△t:
+
+P(r,iΔt) = 1− e^(-r^2/4*D*(iΔt))
+
+the CDF and UniqueDisplacement in the output file is corresponding to P and r in this formula. If intend to generate the CDF plot from the output file, the CDF and UniqueDisplacement is corresponding to the y and x values in the CDF output plot.
+}
 \examples{
 folder1=system.file("extdata","SWR1",package="smt")
 folder2=system.file("extdata","HTZ1",package="smt")

@@ -19,6 +19,11 @@
 ##'   detail.
 ##' @param output An logical indicate if output should be generated. See Values
 ##'   for detail.
+##' @details The cumulative radial distribution function, P(r, i△t), is the probability of finding the diffusing particle within a radius r from the origin at time lag i△t:
+##'
+##' P(r,iΔt) = 1− e^(-r^2/4*D*(iΔt))
+##'
+##' the CDF and UniqueDisplacement in the output file is corresponding to P and r in this formula. If intend to generate the CDF plot from the output file, the CDF and UniqueDisplacement is corresponding to the y and x values in the CDF output plot.
 
 ##' @return
 ##' \itemize{
@@ -267,6 +272,9 @@ displacementCDF=function(trackll,dt=6,resolution=0.107,plot=F,output=F,bivar=F){
     file.name=names(trackll)
     stepwise.displacement=lapply(dp.dt,melt)
 
+    # export the data within ecdf
+    # only x, y is relevant
+    # the CDF and UniqueDisplacement is corresponding to the y and x
     data=ggplot_build(ecdf)$data[[1]]
 
     ## preprocess the data before output
