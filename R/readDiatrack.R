@@ -18,7 +18,7 @@
 ##' @param folder Full path to Diatrack output file.
 ##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
 ##' @param mask An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.
-##' @param cores Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster.
+##' @param cores Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster. Tip: each core will be assigned to read in a file when paralelled.
 
 ##' @return
 ##' \itemize{
@@ -172,9 +172,10 @@
 # read in mask and derive positive pix form a mask
 maskPoint=function(mask.file,plot=F){
 
+    mask.file.name=basename(mask.file)
     # read in tiff mask
     # library(rtiff)
-    cat("Reading mask file...\n")
+    cat("Reading mask file    ",mask.file.name,"\n")
     mask=rtiff::readTiff(fn=mask.file)
     # plot(mask)
 

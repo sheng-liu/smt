@@ -10,13 +10,23 @@
 ##' @docType methods
 ##' @description Plot track/trajectory from track list. either randomly or specified.
 
-##' @usage plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
+##' @usage
 ##'
-##' plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
+##' plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,
+##'           frame.start=1,frame.end=500)
+##'
+##' plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),
+##'                    resolution=0.107,frame.min=1,frame.max=100,
+##'                    frame.start=1,frame.end=500)
 ##'
 ##' plotTrackOverlay(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 ##'
+##' plotNucTrackOverlay(folder,trackll=NULL,mask=F,cores=1,
+##'                     max.pixel=128,nrow=2,ncol=2,width=16,height=16)
+##'
 ##' plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
+##'
+##'
 ##'
 ##' @param ab.trackll absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).
 ##' @param resolution ratio of pixel to µM.
@@ -40,11 +50,17 @@
 ##' \item{PDF} One PDF file with all the frames satisfy the creteria. If trackll has multiple items, it ouptus mutiple PDF files each corresponding to one item.
 
 ##' }
-##' @details plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+##' @details
+##' \itemize{
+##' \item{plotTrackFromIndex:} if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
 ##'
-##' plotTrackOverlay: plot all tracks in trackll overlaid on one plot.
+##' \item{plotTrackOverlay:} plot all tracks in trackll overlaid on one plot.
 ##'
-##' plotMask: plot image mask.
+##' \item{plotNucTrackOverlay:} plot tracks in a movie overlayed with nuclei image. The nuclei image file must end with _Nuclei.tiff to be recognized. If trackll is NULL (default), program will read in trackll from specified folder and return trackll, otherwise it will take the specified trackll directly.
+##'
+##' \item{plotMask:} plot image mask. The mask file name must ended with _MASK.tiff to be recognized.
+##'
+##' }
 
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
@@ -69,10 +85,12 @@
 ##'
 ##' # mask.url="https://www.dropbox.com/s/6472kweldoh96xd/SWR1_halo_140mW3_20151025_SWR1WT_Substack%20%28400-5800%29_MASK.tif?dl=0"
 ##' # data.url="https://www.dropbox.com/s/lav6f0y4gd4j4lt/SWR1_halo_140mW3_20151025_SWR1WT_Substack%20%28400-5800%29.txt?dl=0"
+##' # nuclei.url="https://www.dropbox.com/s/t6erxm3wze9pz0r/Temp_Placeholder_Nuclei.tif?dl=0"
 ##'
 ##' # dir.create("~/masking_test/")
 ##' # download.file(mask.url, "~/masking_test/_MASK.tif")
 ##' # download.file(data.url, "~/masking_test/_DATA.txt")
+##' # download.file(nuclei.url, "~/masking_test/_Nuclei.tif")
 ##' # track.folder="~/masking_test/"
 ##'
 ##' ## masking with image mask
@@ -84,6 +102,10 @@
 ##' ## compare the masking effect
 ##' # plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
 ##' # plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
+##'
+##' ## compare masking effect with nuclei image
+##' # plotNucTrackOverlay(folder=track.folder,trackll,nrow=1,ncol=1,width=8,height=8)
+##' # plotNucTrackOverlay(folder=track.folder,trackll.masked,nrow=1,ncol=1,width=8,height=8)
 ##'
 ##' ## plot mask
 ##' # plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
@@ -98,6 +120,7 @@
 
 ##' @export plotTrackOverlay
 ##' @export plotMask
+##' @export plotNucTrackOverlay
 
 # .plotMask(mask.list[1])
 
@@ -247,38 +270,61 @@ plotTrackFromIndex=function(index.file, movie.folder=c(folder1,folder2,...),reso
 ##------------------------------------------------------------------------------
 ##
 
+# plot all movies in a folder
+
+# becasue "indexPerTrackll"
 # must be list from one movie
 # TrackOverlay only plots the first object in trackll list,
 # use trackll[n] to specifically nth object in the trackll list
 
-.plotTrackOverlay=function(trackll,max.pixel=128){
+# collaps tracks of a single file (i.e. trackl)
+trackOverlayData=function(trackl){
 
 
-    # get names of the trackll (/video) to put it on each graph
-    plot.title=names(trackll)
+    # plot.title=names(trackl)
 
-    cat("\nProcessing",plot.title)
+    cat("\nProcessing",names(trackl))
 
-    track.df=do.call(rbind.data.frame,trackll[[1]])
+    track.df=do.call(rbind.data.frame,trackl[[1]])
 
+          # must use [[1]]
+#     > str(trackll[[1]],0)
+#     List of 908
+#     [list output truncated]
+#     > str(trackll[1],0)
+#     List of 1
+
+
+    # split rownames
     n=track.df
-
     if (length(grep("txt",rownames(n)[1]))==0){
         Index=strsplit(rownames(n),"\\.")
-
     }else{
         Index=strsplit(rownames(n),".txt.")
-
     }
 
     # trackID=fileID.frameID.duration.indexPerFile.indexPerTrackll
-    Index=data.frame(do.call(rbind,Index))
+    Index.df=data.frame(do.call(rbind,Index))
+    #do.call(rbind.data.frame,Index)
 
-    colnames(Index)=c("fileID","frameID","duration","indexPerFile","indexPerTrackll","SN")
+    colnames(Index.df)=c("fileID","frameID","duration","indexPerFile","indexPerTrackll","SN")
 
-    track.plot.df=cbind(track.df,Index)
+    track.plot.df=cbind(track.df,Index.df)
+    return(track.plot.df)
 
-    p=ggplot(track.plot.df,aes(x=x,y=y,group=indexPerFile))+geom_path()+
+}
+
+# for a single file (i.e. trackl)
+.plotTrackOverlay=function(trackl,max.pixel=128){
+
+
+    # get names of the trackll (/video) to put it on each graph
+    plot.title=names(trackl)
+
+
+    track.overlay.data=trackOverlayData(trackl)
+
+    p=ggplot(track.overlay.data,aes(x=x,y=y,group=indexPerFile))+geom_path()+
 
         scale_x_continuous(
             name="Pixel",
@@ -311,7 +357,8 @@ plotTrackOverlay=function(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16
     # get plot.lst
     plot.lst=list()
 
-    for (i in 1:length(trackll)) plot.lst[[i]]=.plotTrackOverlay(trackll[i],max.pixel=max.pixel)
+    for (i in 1:length(trackll)) plot.lst[[i]]=.plotTrackOverlay(
+        trackl=trackll[i],max.pixel=max.pixel)
 
     # output
     cat("\nOutput combined plot...")
@@ -374,6 +421,7 @@ plotTrackOverlay=function(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16
 
 
 
+
 plotMask=function(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16){
 
     mask.lst=list.files(path=folder,pattern="_MASK.tif",full.names=T)
@@ -389,7 +437,193 @@ plotMask=function(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16){
     cat("\nDone!")
 }
 
+##------------------------------------------------------------------------------
+##
+
+# plotNucTrackOverlay
+
+.plotNucTrackOverlay=function(trackl,image.file,max.pixel=128){
+
+    # get names of the trackll (/video) to put it on each graph
+    plot.title=names(trackl)
+
+    track.overlay.data=trackOverlayData(trackl)
+
+    img=EBImage::readImage(image.file)
+    d=img@.Data
+
+    p=  ggplot()+
+        geom_raster(data=melt(d), aes(Var1,Var2,fill=value),interpolate=FALSE)+
+        scale_fill_gradient(low = "black", high = "white")+ guides(fill=FALSE)+
+
+        geom_path(data=track.overlay.data,
+                  aes(x=x,y=y,group=indexPerFile),
+                  color="red")+
+        scale_x_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel),
+            # remove the blank between image and axies
+            expand = c(0, 0))+
+        scale_y_continuous(
+            name="Pixel",
+            breaks=seq(from=0, to=max.pixel,by=20),
+            limits=c(0,max.pixel),
+            # remove the blank between image and axies
+            expand = c(0, 0))+
+        ggtitle(plot.title)+
+
+        # this makes integer breaks
+        #        scale_x_continuous(breaks=scales::pretty_breaks(n=5))+
+        #        scale_y_continuous(breaks=scales::pretty_breaks(n=5))+
+        #labs(x="Pixel", y="Pixel")
+
+        theme_bw()
+
+    # removes line and text of axis, only picture
+#     +theme(line=element_blank(),
+#            text=element_blank())
+
+    plot(p)
+
+    return(p)
+}
+
+plotNucTrackOverlay=function(folder,trackll=NULL,mask=F,cores=1,
+                             max.pixel=128,
+                             nrow=2,ncol=2,width=16,height=16){
+
+    nuclei.lst=list.files(path=folder,pattern="_Nuclei.tif",full.names=T)
+
+    if (is.null(trackll)){
+        cat("\ntrackll not specified, read in Diatrack file\n")
+        trackll=readDiatrack(folder=folder,merge=F,mask=mask,cores=cores)
+    }
 
 
+    plot.lst=list()
+    for (i in 1:length(trackll)) plot.lst[[i]]=.plotNucTrackOverlay(
+        trackl=trackll[i],nuclei.lst[[i]],max.pixel=max.pixel)
 
 
+    # output
+    cat("\nOutput combined plot...")
+    cmb.plot=gridExtra::marrangeGrob(plot.lst,nrow=nrow,ncol=ncol)
+
+    fileName=paste(.timeStamp("NucTrackOverlay"),".pdf",sep="")
+    # TODO: add folder name in .timeStamp
+    # fileName=paste("TrackOverlay-",.timeStamp("folder"),".pdf",sep="")
+
+    ggplot2::ggsave(filename=fileName,cmb.plot,width=width,height=height)
+    # tip: save as png help keep the raster pixel better than pdf
+
+    cat("\nDone!")
+
+    return(invisible(trackll))
+
+}
+
+
+## TODO:
+# replace or combine readTiff to eBIage
+# TODO: max.pixel=128 can be removed
+
+
+# -----
+
+# these below function can be used to add image as background
+
+# .nucleiGrob=function(nuclei.file){
+#
+#     # read in tiff nuclei file
+#     # library(EBImage)
+#
+#     title=basename(nuclei.file)
+#     cat("\nReading nuclei file",title,"\n")
+#     nuclei=EBImage::readImage(nuclei.file)
+#     # display(nuclei)
+#     # interpolate =F to make pixel clearer
+#     nucleiGrob= grid::rasterGrob(nuclei, interpolate=F)
+#
+#     #     ggplot(data=pos.point,aes(x=x,y=y),shape=22)+
+#     #         annotation_custom(grob=g,xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+#     #         geom_point(color="red")
+#
+#     #     ggplot(data.frame(x=1:10,y=1:10),aes(x=x,y=y))+
+#     #         annotation_custom(grob=g,xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+#     #         geom_point()
+#
+#     return(nucleiGrob)
+# }
+
+# for one file (i.e. trackl)
+# .plotPicTrackOverlay=function(trackl,nucleiGrob,max.pixel=128){
+#
+#     # get names of the trackll (/video) to put it on each graph
+#     plot.title=names(trackl)
+#
+#     track.overlay.data=trackOverlayData(trackl)
+#
+#     p=ggplot(track.overlay.data,aes(x=x,y=y,group=indexPerFile))+
+#         annotation_custom(grob=nucleiGrob,xmin=-Inf, xmax=Inf, ymin=-Inf, ymax=Inf)+
+#
+#         geom_path(color="red")+
+#         scale_x_continuous(
+#             name="Pixel",
+#             breaks=seq(from=0, to=max.pixel,by=20),
+#             limits=c(0,max.pixel))+
+#         scale_y_continuous(
+#             name="Pixel",
+#             breaks=seq(from=0, to=max.pixel,by=20),
+#             limits=c(0,max.pixel))+
+#         ggtitle(plot.title)+
+#
+#         # this makes integer breaks
+#         #        scale_x_continuous(breaks=scales::pretty_breaks(n=5))+
+#         #        scale_y_continuous(breaks=scales::pretty_breaks(n=5))+
+#         #labs(x="Pixel", y="Pixel")+
+#
+#         theme_bw()
+#
+#     plot(p)
+#     return(p)
+#
+# }
+
+# plotPicTrackOverlay=function(folder,mask=F,cores=1,
+#                              max.pixel=128,
+#                              nrow=2,ncol=2,width=16,height=16){
+#
+#     nuclei.lst=list.files(path=folder,pattern="_Nuclei.tif",full.names=T)
+#
+#     nucleiGrob.lst=lapply(nuclei.lst,.nucleiGrob)
+#     names(nucleiGrob.lst)=sapply(nuclei.lst,basename,
+#                                  simplify = TRUE, USE.NAMES = F)
+#
+#
+#     trackll=readDiatrack(folder=folder,merge=F,mask=mask,cores=cores)
+#
+#     plot.lst=list()
+# #     for (i in 1:length(trackll)){
+# #         .plotNucTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
+# #
+# #     }
+#
+#     for (i in 1:length(trackll)) plot.lst[[i]]=.plotNucTrackOverlay(
+#         trackl=trackll[i],nucleiGrob.lst[[i]],max.pixel=max.pixel)
+#
+#
+#     # output
+#     cat("\nOutput combined plot...")
+#     cmb.plot=gridExtra::marrangeGrob(plot.lst,nrow=nrow,ncol=ncol)
+#
+#     fileName=paste(.timeStamp("NucTrackOverlay"),".pdf",sep="")
+#
+#     # fileName=paste("TrackOverlay-",.timeStamp("folder"),".pdf",sep="")
+#
+#     ggplot2::ggsave(filename=fileName,cmb.plot,width=width,height=height)
+#
+#     cat("\nDone!")
+#
+#
+# }

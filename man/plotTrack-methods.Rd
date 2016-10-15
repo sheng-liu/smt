@@ -6,11 +6,17 @@
 \alias{plotTrack}
 \title{plotTrack}
 \usage{
-plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,frame.start=1,frame.end=500)
+plotTrack(ab.trackll,resolution=0.107,frame.min=8,frame.max=100,
+          frame.start=1,frame.end=500)
 
-plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),resolution=0.107,frame.min=1,frame.max=100,frame.start=1,frame.end=500)
+plotTrackFromIndex(index.file, movie.folder=c(folder1,folder2,...),
+                   resolution=0.107,frame.min=1,frame.max=100,
+                   frame.start=1,frame.end=500)
 
 plotTrackOverlay(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
+
+plotNucTrackOverlay(folder,trackll=NULL,mask=F,cores=1,
+                    max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 
 plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 }
@@ -52,11 +58,16 @@ plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 Plot track/trajectory from track list. either randomly or specified.
 }
 \details{
-plotTrackFromIndex: if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+\itemize{
+\item{plotTrackFromIndex:} if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
 
-plotTrackOverlay: plot all tracks in trackll overlaid on one plot.
+\item{plotTrackOverlay:} plot all tracks in trackll overlaid on one plot.
 
-plotMask: plot image mask.
+\item{plotNucTrackOverlay:} plot tracks in a movie overlayed with nuclei image. The nuclei image file must end with _Nuclei.tiff to be recognized. If trackll is NULL (default), program will read in trackll from specified folder and return trackll, otherwise it will take the specified trackll directly.
+
+\item{plotMask:} plot image mask. The mask file name must ended with _MASK.tiff to be recognized.
+
+}
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")
@@ -81,10 +92,12 @@ plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 
 # mask.url="https://www.dropbox.com/s/6472kweldoh96xd/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29_MASK.tif?dl=0"
 # data.url="https://www.dropbox.com/s/lav6f0y4gd4j4lt/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29.txt?dl=0"
+# nuclei.url="https://www.dropbox.com/s/t6erxm3wze9pz0r/Temp_Placeholder_Nuclei.tif?dl=0"
 
 # dir.create("~/masking_test/")
 # download.file(mask.url, "~/masking_test/_MASK.tif")
 # download.file(data.url, "~/masking_test/_DATA.txt")
+# download.file(nuclei.url, "~/masking_test/_Nuclei.tif")
 # track.folder="~/masking_test/"
 
 ## masking with image mask
@@ -96,6 +109,10 @@ plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 ## compare the masking effect
 # plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
 # plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
+
+## compare masking effect with nuclei image
+# plotNucTrackOverlay(folder=track.folder,trackll,nrow=1,ncol=1,width=8,height=8)
+# plotNucTrackOverlay(folder=track.folder,trackll.masked,nrow=1,ncol=1,width=8,height=8)
 
 ## plot mask
 # plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
