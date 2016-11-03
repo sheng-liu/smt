@@ -285,15 +285,20 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
 
         n=do.call(rbind,m)
 
+        # readParticleTracker introduces .csv into track.name
+        # readDiatrack introduces .txt into track.name
 
-            if (length(grep("txt",rownames(n)[1]))==0){
-                Index=strsplit(rownames(n),split="[.]")  # split="\\."
+        if (length(grep("txt",rownames(n)[1]))!=0){
+            # if track.name has .txt
+            Index=strsplit(rownames(n),".txt.")
 
-            }else{
-                Index=strsplit(rownames(n),".txt.")
-
-
-            }
+        }else if (length(grep("csv",rownames(n)[1]))!=0){
+            # if track.name has .csv
+            Index=strsplit(rownames(n),".csv.")
+        }else {
+            # rest, track name doesn't have either .txt or .csv
+            Index=strsplit(rownames(n),split="[.]")  # split="\\."
+        }
 
         Index=do.call(rbind,Index)
         colnames(Index)=c("file.name","dt")
@@ -375,7 +380,7 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),p
 
 
     }
-    return(MSD)
+    return(invisible(MSD))
 }
 
 ##------------------------------------------------------------------------------

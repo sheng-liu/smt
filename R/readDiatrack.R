@@ -78,6 +78,7 @@
 
 .readDiatrack=function(file, interact=F,ab.track=F){
 
+    # interactively open window
     if (interact==T) {
         file=file.choose()
     }
@@ -117,9 +118,6 @@
 
         # the [[]] is important, otherwise only x is included
         track.list[[i]]=track
-
-
-
 
         # store num.tracks.per.file
         num.tracks.per.file[i]=dim(track)[1]
@@ -324,31 +322,32 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
     # first level list of file names and
     # second level list of data.frames
 
-#     for (i in 1:length(file.list)){
-#
-#         track=.readDiatrack(file=file.list[i],ab.track=ab.track)
-#
-#         # add indexPerTrackll to track name
-#         indexPerTrackll=1:length(track)
-#         names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
-#
-#         trackll[[i]]=track
-#         names(trackll)[i]=file.name[i]
-#     }
+    max.cores=parallel::detectCores(logical=F)
 
-    # parallel this block of code
-    # assign reading in using .readDiatrack to each CPUs
+    if (cores==1){
 
-    # detect number of cores
+        for (i in 1:length(file.list)){
 
-    # if more than one, automatic using multicore
+            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
 
-    if (cores>1){
+            # add indexPerTrackll to track name
+            indexPerTrackll=1:length(track)
+            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
 
-        max.cores=parallel::detectCores(logical=F)
+            trackll[[i]]=track
+            names(trackll)[i]=file.name[i]
+        }
+
+    }else{
+
+        # parallel this block of code
+        # assign reading in using .readDiatrack to each CPUs
+
+        # detect number of cores
+        # FUTURE: if more than one, automatic using multicore
+
         if (cores>max.cores)
             stop("Number of cores specified is greater than recomended maxium: ",max.cores)
-
 
         cat("Initiated parallel execution on", cores, "cores\n")
         # use outfile=" to display result on screen
@@ -373,28 +372,9 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
 
         names(trackll)=file.name
 
-    }else{
-
-        for (i in 1:length(file.list)){
-
-            track=.readDiatrack(file=file.list[i],ab.track=ab.track)
-
-            # add indexPerTrackll to track name
-            indexPerTrackll=1:length(track)
-            names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
-
-            trackll[[i]]=track
-            names(trackll)[i]=file.name[i]
-        }
     }
 
-    # trackll naming scheme
-    # if merge==F, list takes the name of individual file name within folder
-    # file.name > data.frame.name
-    # if merge==T, list takes the folder name
-    # folder.name > data.frame.name
-
-    # clearning tracks by image mask
+    # cleaning tracks by image mask
     if (mask==T){
         trackll=maskTracks(trackll=trackll,maskl=mask.list)
     }
@@ -403,7 +383,6 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
     # merge has to be done after mask
 
     if (merge==T){
-
         trackll[[i]]=track
         names(trackll)[i]=file.name[i]
     }
@@ -424,6 +403,12 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
     # merge has to be done after mask
 
     if (merge==T){
+
+        # trackll naming scheme
+        # if merge==F, list takes the name of individual file name within folder
+        # file.name > data.frame.name
+        # if merge==T, list takes the folder name
+        # folder.name > data.frame.name
 
         # concatenate track list into one list of data.frames
         for (i in 1:length(file.list)){

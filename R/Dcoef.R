@@ -213,7 +213,7 @@ Dcoef=function(
 
     }
 
-    return(D.coef.subset)
+    return(invisible(D.coef.subset))
     # if no subsetting is intended, select rsquare=0
 }
 
