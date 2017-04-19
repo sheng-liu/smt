@@ -12,7 +12,7 @@
 
 ##' @usage
 ##' filterTrack(trackll,filter=c(min=7,max=Inf)))
-##' trimTrack(trackll,trimmer=c(min=1,max=25)))
+##' trimTrack(trackll,trimmer=c(min=1,max=32)))
 
 ##' @param trackll Track list output from readDiatrack().
 ##' @param filter length of track used for filtration. Only tracks pass through filter will be selected.
@@ -24,7 +24,12 @@
 ##' \item{trackll} filtered or trimmed tracks.
 ##' }
 
-
+##' @details filter is used to filter out tracks that has length within a
+##'   specified range (default 5~Inf); On the other hand, despite the lengths of
+##'   tracks, trimmer is used to trim /cutoff all tracks to a specified range
+##'   (default 1~32).
+##'
+##'
 ##' @examples
 ##' folder=system.file("extdata","SWR1",package="smt")
 ##' trackll=readDiatrack(folder)
@@ -74,7 +79,7 @@ filterTrack=function(trackll,filter=c(min=7,max=Inf)){
 ##------------------------------------------------------------------------------
 ## trim long tracks into shorter ones
 
-.trimTrack=function(track,min=1,max=25){
+.trimTrack=function(track,min=1,max=32){
     t=track[min:max,]
     cc.t=complete.cases(t)
     t=t[cc.t,]
@@ -82,7 +87,7 @@ filterTrack=function(trackll,filter=c(min=7,max=Inf)){
 }
 
 ##' @export trimTrack
-trimTrack=function(trackll,trimmer=c(min=1,max=25)){
+trimTrack=function(trackll,trimmer=c(min=1,max=32)){
 
     # reinforce name
     names(trimmer)=c("min","max")

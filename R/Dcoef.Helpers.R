@@ -20,50 +20,71 @@
 ## return a list of coefficients
 Dcoef.static=function(MSD,lag.start=2,lag.end=5,t.interval=0.010){
 
+    # linear fitting of the MSD curves between dt 2 and 5
     cat("lag.start  ",lag.start,"\t","lag.end  ",lag.end,"\n")
 
-    # linear fitting of the MSD curves between dt 2 and 5
+    # specifying x
     x=(lag.start:lag.end)*t.interval
     dimension=2
 
-
-
-    # x=2:5 ; x=1:4 # coefficient is the same
-    D.inst=list()
-    for (i in 1:length(MSD)){
-        D.inst[[i]]=apply(MSD[[i]][lag.start:lag.end,],MARGIN=2,function(y){
-            fit=lm(y~x)
-            MSDslope=coefficients(fit)[2]/2/dimension
-            MSDcorr=summary(fit)$r.squared
-            sc=c(MSDslope,MSDcorr)
-            names(sc)=c("slope","corr")
-            return(sc)
+    # fitting y to x
+    D.coef=lapply(MSD,function(msd){
+            apply(msd[lag.start:lag.end,],MARGIN=2,function(y){
+                fit=lm(y~x)
+                MSDslope=coefficients(fit)[2]/(2*dimension)
+                MSDcorr=summary(fit)$r.squared
+                sc=c(MSDslope,MSDcorr)
+                names(sc)=c("slope","corr")
+                return(sc)
+            })
         })
-
-    }
-
-    names(D.inst)=names(MSD)
+    # this is the lapply-for setup, see below for alternative for-lapply setup
+    # and its comparison
 
     # change shape of the matrix
-    D.inst=sapply(D.inst,function(x){
-        x=t(x)
-        colnames(x)=c("slope","corr")
-        return(x)
-    },simplify = F)
+    D.coef=sapply(D.coef,function(x){t(x)},simplify = F)
 
-    return(D.inst)
+    return(D.coef)
 }
+
+# see below for alternative for-lapply setup; reverse lapply-for setup is
+# better, list are named and can easily be paralleled; the cons being it can
+# only pass in one parameter, if more than two is not as easily setup
+
+# for-lapply setup
+#     D.coef=list()
+#     for (i in 1:length(MSD)){
+#         D.coef[[i]]=apply(MSD[[i]][lag.start:lag.end,],MARGIN=2,function(y){
+#             fit=lm(y~x)
+#             MSDslope=coefficients(fit)[2]/2/dimension
+#             MSDcorr=summary(fit)$r.squared
+#             sc=c(MSDslope,MSDcorr)
+#             names(sc)=c("slope","corr")
+#             return(sc)
+#         })
+#
+#     }
+#     names(D.coef)=names(MSD)
+
+# change shape of the matrix
+#     D.coef=sapply(D.coef,function(x){
+#         x=t(x)
+#         # colnames(x)=c("slope","corr")
+#         return(x)
+#     },simplify = F)
+
+
 
 ##------------------------------------------------------------------------------
 ## .Dcoef.roll
 
-## cant use roll on MSD method = percentage, as its MSD is different length, MSD method = percentage is calculated differently, using msd.vecdt(), instead of msd().
+## cant use roll on MSD method = percentage, as its MSD is different length, MSD method = percentage is calculated differently, using msd.track.vecdt(), instead of msd().
 
 Dcoef.roll=function(MSD,window.size=4,t.interval=0.010){
 
-    D.inst=list()
-    D.inst.roll=list()
-    names.D.inst.roll=c()
+    D.coef=list()
+    D.coef.roll=list()
+    names.D.coef.roll=c()
     window=1:window.size
     dt=dim(MSD[[1]])[1]
     dimension=2
@@ -75,7 +96,7 @@ Dcoef.roll=function(MSD,window.size=4,t.interval=0.010){
         for ( j in 0:(dt-window.size)){
             print(window+j)
             x=window+j
-            D.inst.roll[[j+1]]=apply(MSD[[i]][window+j,],
+            D.coef.roll[[j+1]]=apply(MSD[[i]][window+j,],
                                      MARGIN=2,
                                      function(y){
                                          x=x*t.interval
@@ -86,95 +107,189 @@ Dcoef.roll=function(MSD,window.size=4,t.interval=0.010){
                                          names(sc)=c("slope","corr")
                                          return(sc)
                                      })
-            names.D.inst.roll=c(names.D.inst.roll,
+            names.D.coef.roll=c(names.D.coef.roll,
                                 paste(as.character(window+j),collapse=" "))
         }
 
-        names(D.inst.roll)=names.D.inst.roll
+        names(D.coef.roll)=names.D.coef.roll
 
-        D.inst[[i]]=D.inst.roll
-        names.D.inst.roll=c()
+        D.coef[[i]]=D.coef.roll
+        names.D.coef.roll=c()
     }
-    names(D.inst)=names(MSD)
+    names(D.coef)=names(MSD)
 
 
     # change shape of the matrix
-    for (i in 1:length(D.inst)){
-        for (j in 1:length(D.inst[[i]])){
-            D.inst[[i]][[j]]=t(D.inst[[i]][[j]])
+    for (i in 1:length(D.coef)){
+        for (j in 1:length(D.coef[[i]])){
+            D.coef[[i]][[j]]=t(D.coef[[i]][[j]])
         }
     }
 
+#     # alternative
+#     D.coef=lapply(D.coef,function(x){
+#         sapply(x,function(x){t(x)},simplify = F)
+#
+#     })
 
-    #     for (i in 1:length(Dinst)){
-    #         D.inst[[i]]=sapply(D.inst[[i]],function(x){
-    #             x=t(x)
-    #             colnames(x)=c("slope","corr")
-    #         })
-    #     }
-    #     # this changes into a high level array, need a way to control sapply output format
-
-
-    return(D.inst)
+    return(D.coef)
 }
+
+# alternative treat Dcoef.roll as special case of Dcoef.static, except start and end is rolling
+
+D.coef.roll=function(MSD,window.size=4,t.interval=0.010){
+
+    dt=dim(MSD[[1]])[1]
+
+    start=1:(dt-window.size+1)
+    end=lag.start+window.size-1
+
+    D.coef=list()
+    D.coef.vec=c()
+    for (i in start){
+        dd=Dcoef.static(MSD,lag.start=start[i],lag.end=end[i],t.interval=0.010)
+        D.coef.vec=c(D.coef.vec,list(dd))
+    }
+
+
+    # rearrange
+    D.coef.vec
+
+    mapply(c,start,end)
+
+    # generate names
+    name.vec=c()
+    for (i in start) {
+        name=paste(start[[i]]:end[[i]],collapse=" ")
+        name.vec=c(name.vec,name)
+    }
+
+    names(D.coef.vec)=name.vec
+
+
+#n=c()
+    # take the first item of the list to form a new list
+#     for (i in start){
+#         for (file.number in 1:length(MSD)){
+#             n=c(n,list(D.coef.vec[[i]][file.number]))
+#         }
+#
+#     }
+#
+#     n=c()
+#     for (file.number in 1:length(MSD)){
+#
+#         for (i in start){
+#
+#             n=c(n,list(D.coef.vec[[i]][file.number]))
+#
+#         }
+#     }
+#
+
+
+
+    name2=names(MSD)
+    l=list()
+    for (j in name2 ){
+        ind=which(name2==j)
+        l[[ind]]=lapply(D.coef.vec,function(x,i){x[i]},i=j)
+    }
+
+    names(l)=name2
+
+    # remove last level of list
+    z=l
+    for (i in 1:length(l)){
+        for (j in 1:length(l[[i]])){
+            z[[i]][j]=l[[i]][[j]]
+        }
+    }
+
+    #z[[1]][[1]]=l[[1]][1]
+
+}
+
+
+
+
 
 ##------------------------------------------------------------------------------
 ## percentage
 ## To determine the diffusion constant from a trajectory, a line was fit to MSD(n􏲄t) with n running from 1 to the largest integer less than or equal to L/4 (Saxton, 1997).
 
-Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), resolution=0.107,t.interval=0.010){
+## "The short-range diffusion coefficients D*(0: 4) and D*(O: 8) are well determined; the longest-range diffusion coefficients D*(0: 512) and D*(0: 1024) are so broadly dis- tributed as to be useless (Fig. 2 a)" (Saxton, 1997)
+## from this the maximum track length used for determining diffusion coefficient should be restricted to 32, which yeilds 1/4*32=8. We can then use the trimTrack() to realize this cut-off.
+
+## 0~4 frames equals 4 steps, so the minimum frame taken into account in smt's numbering system (which start with frame 1 rather than 0) should be 1~5, D(1:5) and D(1:9) to allow sampling from 0~4. Anything below 8, should be directly using percentage =1, what tracks that has length 9
+
+# "D*(2: 4), the short-range diffusion coefficient used by Kusumi et al. (1993).
+# A short-range D* has the advan- tages that it is accurately obtained and the
+# influence of directed and confined motion is minimized. D*(2: 4) advantageous
+# for analyzing experi- mental data. The range of D is wide enough that it is
+# convenient to plot the distribution of log D. (Saxton, 1997)
+
+# any track length >32, take 32
+# 22~32, percentage 1/4, use first 5~8 points, excluding initial point (ie.2~6-2~8);
+# 15~21, percentage 0.4, use first 5~8 points, excluding initial point (ie.2~6-2~8);
+# 10~14, percentage 0.6, use first 5~8 points, excluding initial point (i.e.2~6-2~8);(1)
+# 7~9, percentage 1, use all 5~9 frames, excluding initital point (i.e dt 2~6-2~8).(2)
+# 5~6, percentage 1, use all points (i.e. dt 2~4-2~5)(3)
+
+# (1) 10*0.6 = 6 frames, 6 time lags, exclude 1st, 5 points for fitting
+# (2) 7 frames, 6 time lags, exclude 1 st, 5 points for fitting.
+# (3) 5 frames, 4 time step, remove 2, left 2, use all points if less than 7
+
+# this tired percentage setup makes it always use first 2~4-2~8 points for fitting and deriving diffusion coefficient.
 
 
-    cat("\napplying percentage,",percentage,"\n")
-    ## filterTrack of tracks using filter
-    trackll=filterTrack(trackll,filter=filter)
 
-    #determine the length of each trajectory N then compute first 25% N's
-    #msd, manipulate N before hand, then pass in the N vector to dt
+Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=7,max=Inf),
+                    trimmer=c(min=1,max=31),resolution=0.107,t.interval=0.010){
+
+    # calculate msd using msd.perc()
+    msd.lst=msd.perc(trackll,percentage=percentage,filter=filter,trimmer=trimmer,
+                     resolution=resolution,output=F)
+
+    # exclude the first time lag for fitting for all category
+    msd.remove1st=lapply(msd.lst,function(x){
+        for (i in 1:length(x)){x[[i]]=x[[i]][-1]}
+        return(x)
+    })
+
+
+#     # the reverse setup is not as convenient
+#     msd.remove2st=list()
+#     for (i in 1:length(msd.list)){
+#         msd.remove2st[[i]]=lapply(msd.list[[i]],function(x){
+#             x=x[-1]
+#         })
+#     }
+#     names(msd.remove2st)=names(msd.lst)
+
+
+    # copy trackll's structure
+    D.coef=list()
+    length(D.coef)=length(msd.lst)
+    names(D.coef)=names(msd.lst)
+
 
     dimension=2
-    N=list()
-
-    for (i in 1: length(trackll)){
-        N[[i]]=sapply(trackll[[i]],function(x){dim(x)[1]})
-    }
-    names(N)=names(trackll)
-
-    # tracks greater than 20 steps are reduced by percentage
-    for (i in 1:length(N)){
-        # tracks greater than 20 steps are reduced by percentage
-        N[[i]][N[[i]]>20]=round(percentage*N[[i]][N[[i]]>20])
-
-        # tracks less than 20 are reduced by 1 dt
-        N[[i]][N[[i]]<=20]=N[[i]][N[[i]]<=20]-1
-    }
 
 
-    # for all tracks, take the first percentage*length steps
-    # no matter how short they are
+    ## this works for trajecotries length >=7 frames
+    for (i in 1:length(msd.remove1st)){
 
-    msd.list=msd.vecdt(trackll,vecdt=N,resolution=resolution,filter=filter,output=F)
+        for (j in 1:length(msd.remove1st[[i]])){
 
+            y=msd.remove1st[[i]][[j]]
+            len=length(msd.remove1st[[i]][[j]])
 
-    # use first 25% of positions for fitting
-   # copy trackll's structure
-    D.coef=list()
-    length(D.coef)=length(msd.list)
-    names(D.coef)=names(msd.list)
-    for (i in 1:length(msd.list)){
-
-        for (j in 1:length(msd.list[[i]])){
-            y=msd.list[[i]][[j]]
-
-            #len=dim(msd.list[[i]][[j]])[1]
-            len=length(msd.list[[i]][[j]])
-
-            x=seq(from=t.interval,to=len*t.interval,by=t.interval)
-            #x=1:len
+            # exclude 1st x value for fitting
+            x=seq(from=t.interval*2,to=(len+1)*t.interval,by=t.interval)
 
             if (weighted==T){
-                w=1:len
-                fit=lm(y~x,weights =w )
+                w=1:len; fit=lm(y~x,weights =w )
             }else{
                 fit=lm(y~x)
             }
@@ -188,6 +303,18 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 
     }
 
+
+    # lapply can't be used as need two variable function
+    # however you can use lapply and for loop inside
+
+#     for (i in 1:length(y)){
+#         lapply(y[[i]],function(x,t.interval){
+#             len=length(x)
+#
+#         })
+#    }
+
+
     # this changes shape/format into a matrix
     D.coef=sapply(D.coef,function(x){
         do.call(rbind,x)},simplify=F)
@@ -197,9 +324,33 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 }
 
 
+# # an attempt to incorperate trajecotry has length less than 6
+#     # remove first element of msd.lst
+#     msd.remove1st=lapply(msd.lst,function(x){
+#         for (i in 1:length(x)){
+#
+#             # if 3=<frames<=6 are selected, all points needs to be used
+#
+#             if (length(x[[i]])<=3) {stop(
+#                 "tracks must at least have 3 time steps (i.e. 4 frames) for confident coefficient fitting, please filter track first.")
+#
+#             }else if (length(x[[i]])>=5 & length(x[[i]])<=6){
+#                 x[[i]]=x[[i]]
+#             }else{
+#                 x[[i]]=x[[i]][-1]
+#             }
+#
+#         }
+#         return(x)
+#     })
+#
 
 
-# x=list()
+
+
+
+
+# x=lst()
 # for (i in 1:length(D.coef)){
 #     x[[i]]=do.call(rbind,D.coef[i])
 # }
@@ -209,7 +360,7 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 # # this returns a matrix
 #
 # }
-# names(D.inst)=names(MSD)
+# names(D.coef)=names(MSD)
 
 
 #     Weights are set to be the number of points (length of trajectory?) averaged to generate the mean square displacement value at the given delay (in this case, it is the 25%). Thus, we give more weight to MSD curves with greater certainty (larger number of elements averaged).
@@ -243,127 +394,144 @@ Dcoef.perc=function(trackll,percentage=0.25,weighted=F,filter=c(min=5,max=Inf), 
 ## r.squared >= rsquaae as quality control
 
 ##'@export rsquare.filter
-rsquare.filter=function(D.inst,rsquare=0.8,static=TRUE){
+rsquare.filter=function(D.coef,rsquare=0.8){
 
+    cat("\nApplying r square filter...",rsquare,"\n")
 
-    cat("\napplying r square filter...",rsquare,"\n")
-    if (static==T){
-        #         slope=lapply(D.inst,function(x){x[rownames(x)=="slope"]})
-        #         corr=lapply(D.inst,function(x){x[rownames(x)=="corr"]})
+    slope=lapply(D.coef,function(x){x[,"slope"]})   # x[colnames(x)=="slope"]
+    corr=lapply(D.coef,function(x){x[,"corr"]})    # x[colnames(x)=="corr"]
 
-        #         slope=lapply(D.inst,function(x){x[colnames(x)=="slope"]})
-        #         corr=lapply(D.inst,function(x){x[colnames(x)=="corr"]})
+    # the "still" molecule wil generate a NA in correlation, thus is.na(x)==F
+    corr.filter=lapply(corr,function(x){x>=rsquare & is.na(x)==F})
 
-        slope=lapply(D.inst,function(x){x[,"slope"]})
-        corr=lapply(D.inst,function(x){x[,"corr"]})
+    # add corr and slope in the output
 
-        # the "still" molecule wil generate a NA in correlation, thus is.na(x)==F
-        corr.filter=lapply(corr,function(x){x>=rsquare & is.na(x)==F})
-        D.inst.slope.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
+    # mapply("[",D.coef,corr.filter,SIMPLIFY=F)
+    # directly mapply to D.coef, lost the matrix structure
 
-        # add corr also in the output
-        D.inst.corr.subset=mapply("[",corr,corr.filter,SIMPLIFY=F)
+    D.coef.slope.subset=mapply("[",slope,corr.filter,SIMPLIFY=F)
+    D.coef.corr.subset=mapply("[",corr,corr.filter,SIMPLIFY=F)
+    D.coef.subset=mapply(cbind,D.coef.slope.subset,D.coef.corr.subset,SIMPLIFY=F)
 
-        D.inst.subset=mapply(cbind,D.inst.slope.subset,D.inst.corr.subset,SIMPLIFY=F)
-        # add colnames
-        D.inst.subset=lapply(D.inst.subset,function(x){
-            colnames(x)=c("slope","corr")
-            return(x)})
+    # add colnames
+    D.coef.subset=lapply(D.coef.subset,function(x){
+        colnames(x)=c("slope","corr")
+        return(x)
+    })
 
-        #TODO: NOTE static==F, it still only outputs slope only. need to add corr to that one.
-   }else{
+    return(D.coef.subset)
+}
 
-        # to varify the fit
-        # fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
-
-        ## the next two filterTrack blocks maybe combined to increase efficiency,
-        ## however for now the efficiency is secondary, let the logic stand
-        ## clear, then improve the efficiency. as many times efficiency is at
-        ## the expense of sacrifice clearness of the code, hard to read or
-        ## interpretate later.
-
-        D.inst.subset=list()
-        for (i in 1:length(D.inst)){
-
-            # r.squared >= rsquare as quality control
-            slope=lapply(D.inst[[i]],function(x){x[,"slope"]})
-            corr=lapply(D.inst[[i]],function(x){x[,"corr"]})
-
-            #corr.filter=lapply(corr,function(x){x>=rsquare})
-            #D.inst.subset[[i]]=mapply("[",slope,corr.filter)
-
-
-            ## logorithm
-            #Log.D.inst[[i]]=lapply(D.inst[[i]],log)
-            # remove NaN if wanted
-            # Log.D.inst=lapply(Log.D.inst, function(x){
-            #    x[!is.nan(x)]
-            #})
-
-            ## alternative  works
-            for (m in 1:length(corr)){
-                for (n in 1:length(corr[[m]])){
-                    if (corr[[m]][n]<rsquare)
-                        slope[[m]][n]=NaN
-                }
-            }
-
-            D.inst.subset[[i]]=slope
+rsquare.filter.roll=function(D.coef,rsquare=0.8){
+    D.coef.subset=list()
+    length(D.coef.subset)=length(D.coef)
+    names(D.coef.subset)=names(D.coef)
+    for (i in 1:length(D.coef)) {
+        for(j in 1:length(D.coef[[i]])){
+            D.coef.subset[[i]][j]=rsquare.filter(D.coef[[i]][j],rsquare=rsquare)
+            #names(D.coef.subset[[i]][j])=names(D.coef[[i]][j])
 
         }
-        names(D.inst.subset)=names(D.inst)
-
+        # increase a level to name the list
+        names(D.coef.subset[[i]])=names(D.coef[[i]])
     }
-
-    ## filter without losing location information
-    ## or filter in the last step, has to be replaced before log
-    ## if corr <rsquare, replace slope with NaN
-
-    ## alternative
-    #     for (i in 1: length(D.inst)){
-    #
-    #         for (j in 1: length(D.inst[[i]])){
-    #
-    #             # dim(D.inst[[i]][[j]])[2] is the length of the matrix
-    #             for (k in 1:dim(D.inst[[i]][[j]])[2]){
-    #
-    #
-    #                 if (D.inst[[i]][[j]][,k]["corr"]<rsquare)
-    #                     D.inst[[i]][[j]][,k]["slope"]=NaN
-    #
-    #             }
-    #         }
-    #     }
-
-    return(D.inst.subset)
+    return(D.coef.subset)
 }
+
+
+
+
+# to varify the fit
+# fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
+# TODO: output goodness of fit
+
+
+## the next two filterTrack blocks maybe combined to increase efficiency,
+## however for now the efficiency is secondary, let the logic stand
+## clear, then improve the efficiency. as many times efficiency is at
+## the expense of sacrifice clearness of the code, hard to read or
+## interpretate later.
+
+
+## alternative  works
+#             for (m in 1:length(corr)){
+#                 for (n in 1:length(corr[[m]])){
+#                     if (corr[[m]][n]<rsquare)
+#                         slope[[m]][n]=NaN
+#                 }
+#             }
+
+# D.coef.subset[[i]]=slope
+
+
+
+## filter without losing location information
+## or filter in the last step, has to be replaced before log
+## if corr <rsquare, replace slope with NaN
+
+## alternative
+#     for (i in 1: length(D.coef)){
+#
+#         for (j in 1: length(D.coef[[i]])){
+#
+#             # dim(D.coef[[i]][[j]])[2] is the length of the matrix
+#             for (k in 1:dim(D.coef[[i]][[j]])[2]){
+#
+#
+#                 if (D.coef[[i]][[j]][,k]["corr"]<rsquare)
+#                     D.coef[[i]][[j]][,k]["slope"]=NaN
+#
+#             }
+#         }
+#     }
+
+
+
+
+
+
 
 ##------------------------------------------------------------------------------
 ## Dcoef.log
 ##'@export Dcoef.log
-Dcoef.log=function(D.inst.subset,static=T){
-    if (static){
+# Dcoef.log=function(D.coef.subset,static=T){
+#     if (static){
+#
+#         #Log.D.coef=suppressWarnings(lapply(D.coef,log))
+#         # worth noting "log computes logarithms, by default natural logarithms"
+#         Log.D.coef=lapply(D.coef.subset,log10)
+#
+#         # remove NaN if wanted
+#         # Log.D.coef=lapply(Log.D.coef, function(x){
+#         #    x[!is.nan(x)]
+#         #})
+#     }else{
+#         ## logorithm
+#         Log.D.coef=list()
+#         for (i in 1:length(D.coef.subset)){
+#             #Log.D.coef=suppressWarnings(lapply(D.coef,log))
+#             Log.D.coef[[i]]=lapply(D.coef.subset[[i]],log)
+#         }
+#         names(Log.D.coef)=names(D.coef.subset)
+#         return(Log.D.coef)
+#
+#     }
+#     return(Log.D.coef)
+#
+# }
 
-        #Log.D.inst=suppressWarnings(lapply(D.inst,log))
+# not used but keep
+Dcoef.log=function(D.coef.subset){
+
+
+        #Log.D.coef=suppressWarnings(lapply(D.coef,log))
         # worth noting "log computes logarithms, by default natural logarithms"
-        Log.D.inst=lapply(D.inst.subset,log10)
+        Log.D.coef=lapply(D.coef.subset,log10)
 
         # remove NaN if wanted
-        # Log.D.inst=lapply(Log.D.inst, function(x){
+        # Log.D.coef=lapply(Log.D.coef, function(x){
         #    x[!is.nan(x)]
         #})
-    }else{
-        ## logorithm
-        Log.D.inst=list()
-        for (i in 1:length(D.inst.subset)){
-            #Log.D.inst=suppressWarnings(lapply(D.inst,log))
-            Log.D.inst[[i]]=lapply(D.inst.subset[[i]],log)
 
-        }
-        names(Log.D.inst)=names(D.inst.subset)
-        return(Log.D.inst)
-
-    }
-    return(Log.D.inst)
-
+    return(Log.D.coef)
 }

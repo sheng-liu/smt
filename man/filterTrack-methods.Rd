@@ -6,7 +6,7 @@
 \title{filterTrack}
 \usage{
 filterTrack(trackll,filter=c(min=7,max=Inf)))
-trimTrack(trackll,trimmer=c(min=1,max=25)))
+trimTrack(trackll,trimmer=c(min=1,max=32)))
 }
 \arguments{
 \item{trackll}{Track list output from readDiatrack().}
@@ -22,6 +22,12 @@ trimTrack(trackll,trimmer=c(min=1,max=25)))
 }
 \description{
 methods for filter and trim tracks based on track length.
+}
+\details{
+filter is used to filter out tracks that has length within a
+  specified range (default 5~Inf); On the other hand, despite the lengths of
+  tracks, trimmer is used to trim /cutoff all tracks to a specified range
+  (default 1~32).
 }
 \examples{
 folder=system.file("extdata","SWR1",package="smt")

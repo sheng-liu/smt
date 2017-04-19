@@ -23,42 +23,47 @@
 
 # add this TODO, change it to specific dt or change its nomenclature. this will affect msd and displacementCDF, change accordingly.
 
+# it is actally at dt
+
 squareDisp=function(track,dt=1,resolution=0.107){
 
-    # validity check for dt less than track length
+    # validity check, stop if dt greater than track length
     if (dt >(dim(track)[1]-1)){
-        stop("\ntrack length:\t",dim(track)[1],
-             "\ndt:\t\t",dt,
-             "\nTime interval (dt) greater than track length-1\n")
-    }
+        stop("\ntrack length:\t",dim(track)[1],"\ndt:\t\t",dt,
+             "\nTime interval (dt) greater than track length-1\n")}
 
-    # store dt-wise tracks into a list
+    # store dt-wise sub tracks into a list
     track.dt=list()
     for (i in 1:dt){
 
-        # define start
-        # divide track into dt-wise-tracks, stored in the form of list
-        track.dt[[i]]=track[seq(i,dim(track)[1],dt),]
+        # dt, time lags; the number of time interval used for measurement.
+        # default every one step. i, indexing through dt
 
-        # define lag
-        # compute square.disp in dt tracks, stored in original data.frame
-        # note this lag is a dplyr::lag, not base::lag, which only works for
-        # time series
+        # define start
+        # divide track into dt-wise-subtracks, store them in the form of list
+        # # at each specified dt, there are N-dt number of subtracks
+        track.dt[[i]]=track[seq(from=i,to=dim(track)[1],by=dt),]
+
+        # define lag compute square.disp in dt-wise-subtracks, stored them in
+        # original data.frame. note this lag is a dplyr::lag, not base::lag,
+        # which only works for time series
 
         x.disp=(track.dt[[i]]$x-dplyr::lag(track.dt[[i]]$x,n=1))*resolution
         y.disp=(track.dt[[i]]$y-dplyr::lag(track.dt[[i]]$y,n=1))*resolution
 
+        # below is an alternative definition
         # view displacement as displacement to initial position, how far it has
         # moved, rather than to previous position
 
-#          x.disp=(track.dt[[i]]$x-track.dt[[i]]$x[1])*resolution
-#          y.disp=(track.dt[[i]]$y-track.dt[[i]]$y[1])*resolution
+        # x.disp=(track.dt[[i]]$x-track.dt[[i]]$x[1])*resolution
+        # y.disp=(track.dt[[i]]$y-track.dt[[i]]$y[1])*resolution
 
         square.disp=x.disp^2+y.disp^2
         index=rownames(track.dt[[i]])
 
+        # track.dt[[i]]=dplyr::mutate(track.dt[[i]],index,square.disp,
+        #                             dx=x.disp,dy=y.disp)
         # for performance purpose
-        # track.dt[[i]]=mutate(track.dt[[i]],index,square.disp,dx=x.disp,dy=y.disp)
         track.dt[[i]]=cbind(track.dt[[i]],index,square.disp,dx=x.disp,dy=y.disp)
 
     }
@@ -68,8 +73,12 @@ squareDisp=function(track,dt=1,resolution=0.107){
 }
 
 
+# compile track wise computations to bytecode for performance
+# compiler::enableJIT(3)
+# squareDisp=compiler::cmpfun(squareDisp,options=list(optimize=3))
+# compiler::enableJIT(0)
 
-
+# no difference when enableJIT
 #
 # #------------------------------------------------------------------------------
 # # TODO: calculate displacement variance

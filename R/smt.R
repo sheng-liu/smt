@@ -32,6 +32,7 @@
 ##' @import dplyr
 ##' @import reshape2
 ## @import gridExtra
+##' @importFrom reshape2 melt
 ##' @importFrom scales cbreaks
 ##' @importFrom mixtools normalmixEM
 ##' @importFrom mixtools boot.se
@@ -45,6 +46,9 @@
 ##' @importFrom gridExtra marrangeGrob
 ##' @importFrom rtiff readTiff
 ##' @importFrom EBImage readImage
+##' @importFrom compiler cmpfun
+##' @importFrom compiler enableJIT
+##' @importFrom plyr rbind.fill
 ## dplyr has masked  intersect, setdiff, setequal, union from base and other packages, try to use importFrom instead of import package
 ## @importFrom dplyr summarise group_by select %>%
 ##

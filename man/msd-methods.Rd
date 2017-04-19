@@ -6,7 +6,7 @@
 \alias{msd.track}
 \title{msd}
 \usage{
-msd(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,output=F)
+msd(trackll,dt=6,resolution=0.107,summarize=F,cores=1,plot=F,output=F)
 }
 \arguments{
 \item{dt}{Time intervals.}
@@ -16,9 +16,15 @@ msd(trackll,dt=6,resolution=0.107,summarize=F,filter=c(min=7,max=Inf),plot=F,out
 \item{trackll}{Track list output from readDiatrack().}
 
 \item{summarize}{An logical indicate if MSD should be calculated on
-  individual trajectories (Default) or summarized on all trajectories.}
+individual trajectories (Default) or summarized on all trajectories.}
 
-\item{filter}{a vector specifies the minimum and max length of trajecotries to be analyzed. Take only trajectories that has number of frames greater than (>=) min and less than (<) max.}
+\item{filter}{a vector specifies the minimum and max length of trajecotries
+to be analyzed. Take only trajectories that has number of frames greater
+than (>=) min and less than (<) max.}
+
+\item{cores}{Number of cores used for parallel computation. This can be the
+cores on a workstation, or on a cluster. Tip: the computation on each file
+will be parallel assigned to each CPU core.}
 
 \item{plot}{An logical indicate if plot should be generated. See Values for
 detail.}
@@ -32,7 +38,8 @@ for detail.}
 dt.
 
 \item{InidvidualMSD} MSD of individual trajectories at specified dt. Row
-number corresponding to its dt. Notice only the trajectories that satisfies the specified dt is output, trajectories that does not satisfy (i.e.
+number corresponding to its dt. Notice only the trajectories that satisfies
+the specified dt is output, trajectories that does not satisfy (i.e.
 trajectories satisfies 1:(dt-1)) is not output here.
 
 \item{StandardError} Standard Error of the sample mean measures the
@@ -50,7 +57,7 @@ calculate mean square displacement for individual trajectory or
 }
 \details{
 msd() calculate track (/trajectory)'s mean square displacement as a function
-of time (dt). For a track of N steps, at each dt, there are dt number of
+of time (dt). For a track of N steps, at each dt, there are N-dt number of
 sub-trajectory/sub-tracks, mean of dt-wise sub-trajectories/ step-wise sub
 tracks average subtracks into one number at each dt.
 
@@ -59,15 +66,24 @@ is 1 (N-dt > = 1), so the maxium dt is N-1 (dt < = N-1). As dt increase, the
 number of steps used to generate that mean decrease with the maxmum dt
 (dt=N-1) generated from one step.
 
-if one wants to focus on a group of trajectory's evolution, he can simply filter on a number that is bigger than the dt he wanted to plot MSD.
+if one wants to focus on a group of trajectory's evolution, he can simply
+filter on a number that is bigger than the dt he wanted to plot MSD.
+
+by assinging cores, computation is paralelled on each each list of trackll
+(corresponding to one movie file).
 }
 \examples{
+# read in using readDiatrack
 folder=system.file("extdata","SWR1",package="smt")
 trackll=readDiatrack(folder)
-msd=msd(trackll,dt=8,summarize=TRUE,plot=TRUE)
+
+# filter track based length
+trackll.flt=filterTrack(trackll,filter=c(min=5,max=Inf))
+msd=msd(trackll.flt,dt=6,summarize=TRUE,plot=TRUE)
 str(msd)
 
-## focus on a group of trajectory by setting filter greater than dt
-msd=msd(trackll,dt=6,summarize=TRUE,filter=c(7,Inf),plot=TRUE)
+# focus on a group of trajectory by setting filter greater than dt
+trackll.flt2=filterTrack(trackll,filter=c(min=7,max=Inf))
+msd2=msd(trackll.flt2,dt=6,summarize=TRUE,plot=TRUE)
 }
 

@@ -298,7 +298,7 @@ maskTracks=function(trackll,maskl){
 # correspondingly. as it is read into two list, file.list, and mask.list. there
 # is not direct comparison of file name function add in yet in v0.3.4
 
-readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
+readDiatrack=function(folder,merge=F,ab.track=F,mask=F,cores=1){
 
     trackll=list()
     track.holder=c()
@@ -350,7 +350,7 @@ readDiatrack=function(folder,merge= F,ab.track=F,mask=F,cores=1){
             stop("Number of cores specified is greater than recomended maxium: ",max.cores)
 
         cat("Initiated parallel execution on", cores, "cores\n")
-        # use outfile=" to display result on screen
+        # use outfile="" to display result on screen
         cl <- parallel::makeCluster(spec=cores,type="PSOCK",outfile="")
         # register cluster
         parallel::setDefaultCluster(cl)

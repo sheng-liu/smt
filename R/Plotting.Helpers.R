@@ -16,6 +16,7 @@ auto.binwidth=function(x){
 plotHistogram=function(Log.D.coef,binwidth=0.5, method){
     p=reshape2::melt(Log.D.coef)
 
+
     if (method=="static"||method=="percentage"){
 
         colnames(p)=c("Log.D.coef","file.name")
@@ -34,7 +35,7 @@ plotHistogram=function(Log.D.coef,binwidth=0.5, method){
             theme(legend.title=element_blank())
 
         # add visual aid for actual D.coef
-        xbreaks=cbreaks(range=c(min(p$Log.D.coef,na.rm=T),
+        xbreaks=scales::cbreaks(range=c(min(p$Log.D.coef,na.rm=T),
                                 max(p$Log.D.coef,na.rm=T)))
 
         #xbreaks$labels=paste(xbreaks$breaks,10^(xbreaks$breaks),sep="\n")
@@ -42,12 +43,16 @@ plotHistogram=function(Log.D.coef,binwidth=0.5, method){
         lab=paste("(",round(10^(xbreaks$breaks),digits=2),")",sep="")
         xbreaks$labels=paste(xbreaks$breaks,lab,sep="\n")
 
-        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,labels=xbreaks$labels)
+        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,
+                                                    labels=xbreaks$labels)
 
         plot(Dcoef.plot)
     }else if (method=="rolling.window"){
 
         colnames(p)=c("Log.D.coef","window.name","file.name")
+
+        # auto binwidth
+        if (is.null(binwidth)) binwidth=auto.binwidth(p$Log.D.coef)
 
         facet.plot=ggplot(p,aes(x=Log.D.coef,group=file.name,col=file.name))+
             geom_histogram(aes(y = ..count..,fill=file.name),
@@ -102,14 +107,16 @@ plotDensity=function(Log.D.coef,binwidth=0.5,method){
             theme_bw()+
             theme(legend.title=element_blank())
 
-        xbreaks=cbreaks(range=c(min(p$Log.D.coef,na.rm=T),max(p$Log.D.coef,na.rm=T)))
+        xbreaks=scales::cbreaks(range=c(min(p$Log.D.coef,na.rm=T),
+                                        max(p$Log.D.coef,na.rm=T)))
 
          #xbreaks$labels=paste(xbreaks$breaks,10^(xbreaks$breaks),sep="\n")
 
         lab=paste("(",round(10^(xbreaks$breaks),digits=2),")",sep="")
         xbreaks$labels=paste(xbreaks$breaks,lab,sep="\n")
 
-        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,labels=xbreaks$labels)
+        Dcoef.plot= Dcoef.plot + scale_x_continuous(breaks=xbreaks$breaks,
+                                                    labels=xbreaks$labels)
 
         plot(Dcoef.plot)
 
@@ -153,9 +160,12 @@ plotDensity=function(Log.D.coef,binwidth=0.5,method){
 
 ##------------------------------------------------------------------------------
 ## plotVariance
+
+## not used but keep for now.
+
 plotVariance=function(Log.D.coef,method){
 
-        cat("generating variance plot \n")
+        cat("Generating variance plot \n")
 
     ## plot data preparation
     ## plot mean of Log.D.coef of each individual trajectory, against variance of each individual trajectory
@@ -228,7 +238,7 @@ plotVariance=function(Log.D.coef,method){
         )
 
 
-    grid.arrange(mean.density, empty, scatter, sd.density, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+    gridExtra::grid.arrange(mean.density, empty, scatter, sd.density, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
 
 
 
