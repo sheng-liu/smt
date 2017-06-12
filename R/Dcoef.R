@@ -30,7 +30,10 @@
 ##'
 ##' @param binwidth binwidth used for histogram. Default NULL, automatically
 ##'   assign binwidth.
-##' @param method "static", uses time lags 2~5 to calculate diffusion coefficient; "percentage", uses (tierd) percentage (default 0.25) of time lags (see Details). "rolling.window", time lags uses for Dcoef follows a rolling window with specified window size (default 4).
+##' @param method "static", uses time lags 2~5 to calculate diffusion
+##'   coefficient; "percentage", uses (tierd) percentage (default 0.25) of time
+##'   lags (see Details). "rolling.window", time lags uses for Dcoef follows a
+##'   rolling window with specified window size (default 4).
 ##'
 ##' @param output An Logical indicate if output should be generated. See Values
 ##'   for detail.
@@ -55,9 +58,11 @@
 ##'   profile.csv.
 ##'
 ##'   method for calculating Dcoef:
-##' \itemize {
-##'     \item \bold{static} stabilize the number of time lags used for fitting using time lag 2~ 5 despite the total time lags measured.
-##'    \item \bold{percentage} "percentage", uses (tierd) percentage (default 0.25) of time lags.
+##' \itemize{
+##'     \item \bold{static} stabilize the number of time lags used for fitting
+##'     using time lag 2~ 5 despite the total time lags measured.
+##'    \item \bold{percentage} "percentage", uses (tierd) percentage (default
+##'    0.25) of time lags.
 ##' \tabular{rlll}{
 ##'     [,1] \tab TrackLength \tab Percentage \tab TimeLagsForFitting\cr
 ##'     [,2] \tab 31~ \tab 0.25 \tab 2~5-2~7\cr

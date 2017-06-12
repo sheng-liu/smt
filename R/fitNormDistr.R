@@ -36,7 +36,8 @@
 ##' folder1=system.file("extdata","SWR1",package="smt")
 ##' folder2=system.file("extdata","HTZ1",package="smt")
 ##' trackll=compareFolder(c(folder1,folder2))
-##' dcoef=Dcoef(trackll,dt=6,plot="none",output=F)
+##' MSD=msd(trackll=trackll)
+##' dcoef=Dcoef(MSD,dt=6,plot=T,output=F)
 ##' # fit dcoef
 ##' a=fitNormDistr(dcoef,components=NULL,log.transform=F,combine.plot=F,output=F)
 ##' # to repeat a

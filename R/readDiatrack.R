@@ -358,6 +358,7 @@ readDiatrack=function(folder,merge=F,ab.track=F,mask=F,cores=1){
         # pass environment variables to workers
         parallel::clusterExport(cl,varlist=c(".readDiatrack","ab.track"),envir=environment())
 
+        # trackll=parallel::parLapply(cl,file.list,function(fname){
         trackll=parallel::parLapply(cl,file.list,function(fname){
             track=.readDiatrack(file=fname,ab.track=ab.track)
             # add indexPerTrackll to track name
@@ -371,6 +372,7 @@ readDiatrack=function(folder,merge=F,ab.track=F,mask=F,cores=1){
         parallel::stopCluster(cl)
 
         names(trackll)=file.name
+        # names(track)=file.name
 
     }
 
@@ -382,10 +384,13 @@ readDiatrack=function(folder,merge=F,ab.track=F,mask=F,cores=1){
     # merge masked tracks
     # merge has to be done after mask
 
-    if (merge==T){
-        trackll[[i]]=track
-        names(trackll)[i]=file.name[i]
-    }
+
+    # if (merge==T){
+    #     for (i in 1:length(file.list)){
+    #         trackll[[i]]=track[[i]]
+    #         names(trackll)[i]=file.name[i]
+    #     }
+    # }
 
 
     # trackll naming scheme

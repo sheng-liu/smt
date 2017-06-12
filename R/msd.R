@@ -345,11 +345,20 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,cores=1,plot=F,output=F,
     MSD=msd.trackll(trackll,dt=dt,resolution=resolution,cores=cores)
     file.name=names(trackll)
 
+    # if file.name has ".", replace it with "_", as it interference with Index
+    # indentifier "."
+    file.name=gsub('\\.', '_', file.name)
+
     # if summarize
     if (summarize==T){
 
         # remove the IndividualMSD
         MSD.summarized=lapply(MSD,function(x){x$SummarizedMSD})
+
+        # if file.name has ".", replace it with "_", as it interference with Index
+        # indentifier "."
+        names(MSD.summarized)=gsub('\\.', '_', names(MSD.summarized))
+
 
         # do.call(rbind,MSD.summarized) lost rownames
         n= do.call(rbind.data.frame,MSD.summarized)
@@ -362,6 +371,10 @@ msd=function(trackll,dt=6,resolution=0.107,summarize=F,cores=1,plot=F,output=F,
         # using file name as part of index impose vonerability to the program,
         # unless rules of naming a file is strictly followed, problem may arise
         # sporadically. Rules: "." is conserved, do not use it in file name.
+
+        # this time file name has ".", stopped the program
+        # it is better to remove the file name part or do the exchange at the
+        # begining of the program
 
         if (length(grep("txt",rownames(n)[1]))!=0){
             # if track.name has .txt

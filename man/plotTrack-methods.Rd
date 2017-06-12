@@ -18,6 +18,9 @@ plotTrackOverlay(trackll,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 plotNucTrackOverlay(folder,trackll=NULL,mask=F,cores=1,
                     max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 
+plotComponentTrackOverlay(folder,trackll.sel=NULL,
+                    max.pixel=128,nrow=2,ncol=2,width=16,height=16)
+
 plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 }
 \arguments{
@@ -31,11 +34,14 @@ plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 
 \item{frame.end}{last frame to plot. Default 500.}
 
-\item{ab.trackll}{absolute coordinates for plotting, generated from readDiatrack(folder,ab.track=T).}
+\item{ab.trackll}{absolute coordinates for plotting, generated from
+readDiatrack(folder,ab.track=T).}
 
-\item{index.file}{a csv file that contains index of tracks in the first column. Leave a header line when preparing such a file.}
+\item{index.file}{a csv file that contains index of tracks in the first
+column. Leave a header line when preparing such a file.}
 
-\item{movie.folder}{the path to the folder which contains Diatrack output txt files (presumably it is the same folder with movie files).}
+\item{movie.folder}{the path to the folder which contains Diatrack output
+txt files (presumably it is the same folder with movie files).}
 
 \item{mask.file}{path to the mask file.}
 
@@ -48,24 +54,45 @@ plotMask(folder,max.pixel=128,nrow=2,ncol=2,width=16,height=16)
 \item{width}{Width of the page for plotting.}
 
 \item{height}{Height of the page for plotting.}
+
+\item{trackll.sel}{Selected component trajectory output by
+selComponentTracks().}
 }
 \value{
 \itemize{
-\item{PDF} One PDF file with all the frames satisfy the creteria. If trackll has multiple items, it ouptus mutiple PDF files each corresponding to one item.
+\item{PDF} One PDF file with all the frames satisfy the creteria. If trackll
+has multiple items, it ouptus mutiple PDF files each corresponding to one
+item.
 }
 }
 \description{
-Plot track/trajectory from track list. either randomly or specified.
+Plot track/trajectory from track list. either randomly or
+  specified.
 }
 \details{
 \itemize{
-\item{plotTrackFromIndex:} if user provide a csv file with first column listing the index of trajectories, this program will plot the tracks isted in the csv file. It is useful after manipulating with the output from Dceof, to plot the tracks that of interest to the user (e.g. highest Dcoef). User need to provide the indexFile.csv, and specify the movie folder which contains the movies where specified trajectories are tracked.
+\item{plotTrackFromIndex:} if user provide a csv file with first column
+listing the index of trajectories, this program will plot the tracks isted
+in the csv file. It is useful after manipulating with the output from Dceof,
+to plot the tracks that of interest to the user (e.g. highest Dcoef). User
+need to provide the indexFile.csv, and specify the movie folder which
+contains the movies where specified trajectories are tracked.
 
 \item{plotTrackOverlay:} plot all tracks in trackll overlaid on one plot.
 
-\item{plotNucTrackOverlay:} plot tracks in a movie overlayed with nuclei image. The nuclei image file must end with _Nuclei.tiff to be recognized. If trackll is NULL (default), program will read in trackll from specified folder and return trackll, otherwise it will take the specified trackll directly.
+\item{plotNucTrackOverlay:} plot tracks in a movie overlayed with nuclei
+image. The nuclei image file must end with "_Nuclei.tif" to be recognized.
+If trackll is NULL (default), program will read in trackll from specified
+folder and return trackll, otherwise it will take the specified trackll
+directly.
 
-\item{plotMask:} plot image mask. The mask file name must ended with _MASK.tiff to be recognized.
+\item{plotComponentTrackOverlay:} plot tracks base on component fitting of
+diffusion coefficient. Combined with selComponentTracks() function, together
+it allows select and plot tracks based on component fitting of track
+diffusion coefficient.
+
+\item{plotMask:} plot image mask. The mask file name must ended with
+_MASK.tiff to be recognized.
 
 }
 }
@@ -86,35 +113,51 @@ index.file2=system.file("extdata","INDEX","indexFile2.csv",package="smt")
 plotTrackFromIndex(index.file=index.file2,movie.folder = c(folder1,folder2))
 
 ## masking with image mask
-## Not run:
-## download Diatrack output txt file and mask
-## save file to a location on local computer corresponding to your operation system
-
-# mask.url="https://www.dropbox.com/s/6472kweldoh96xd/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29_MASK.tif?dl=0"
-# data.url="https://www.dropbox.com/s/lav6f0y4gd4j4lt/SWR1_halo_140mW3_20151025_SWR1WT_Substack\%20\%28400-5800\%29.txt?dl=0"
-# nuclei.url="https://www.dropbox.com/s/t6erxm3wze9pz0r/Temp_Placeholder_Nuclei.tif?dl=0"
-
-# dir.create("~/masking_test/")
-# download.file(mask.url, "~/masking_test/_MASK.tif")
-# download.file(data.url, "~/masking_test/_DATA.txt")
-# download.file(nuclei.url, "~/masking_test/_Nuclei.tif")
-# track.folder="~/masking_test/"
-
-## masking with image mask
-# trackll=readDiatrack(folder=track.folder,merge=F,mask=F)
-# trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
-# str(trackll,1)
-# str(trackll.masked,1)
+track.folder=system.file("extdata","SWR1_2",package="smt")
+trackll=readDiatrack(folder=track.folder,merge=F,mask=F)
+trackll.masked=readDiatrack(folder=track.folder,merge=F,mask=T)
+str(trackll,1)
+str(trackll.masked,1)
 
 ## compare the masking effect
-# plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
-# plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
+plotTrackOverlay(trackll,nrow=1,ncol=1,width=8,height=8)
+plotTrackOverlay(trackll.masked,nrow=1,ncol=1,width=8,height=8)
 
 ## compare masking effect with nuclei image
-# plotNucTrackOverlay(folder=track.folder,trackll,nrow=1,ncol=1,width=8,height=8)
-# plotNucTrackOverlay(folder=track.folder,trackll.masked,nrow=1,ncol=1,width=8,height=8)
+plotNucTrackOverlay(folder=track.folder,trackll,
+                    nrow=1,ncol=1,width=8,height=8)
+plotNucTrackOverlay(folder=track.folder,trackll.masked,
+                    nrow=1,ncol=1,width=8,height=8)
 
 ## plot mask
-# plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
+plotMask(track.folder,nrow=1,ncol=1,width=8,height=8)
+
+
+## plotComponentTrackOverlay (see selComponentTracks() for more details)
+folder2=system.file("extdata","SWR1_2",package="smt")
+trackll=readDiatrack(folder2,merge=F)
+
+## use merge=T for per folder comparison, the analsyis result can't be plot
+back to original image. To see component tracks on original nuclei image,
+set merge=F, for per movie analysis.
+
+## compute MSD
+MSD=msd(trackll=trackll,plot=T)
+msd(trackll=trackll,summarize=T,plot=T)
+
+## calculate Dcoef
+dcoef=Dcoef(MSD=MSD,method="static",plot=TRUE)
+
+## fit normal distribution to define component
+## set seed to reproduce results (see fitNormalDistr() for details on seed)
+fit=fitNormDistr(
+       dcoef,components=2,log.transform=T,combine.plot=F,output=F,seed=481)
+
+## select component tracks based on fitting
+trackll.sel=selComponentTracks(
+      fit=fit,likelihood = 0.9,dcoef = dcoef,log.transformed = T,output = F)
+
+## plot component tracks
+plotComponentTrackOverlay(folder2,trackll.sel=trackll.sel)
 }
 

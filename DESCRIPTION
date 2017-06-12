@@ -1,10 +1,10 @@
 Package: smt
 Type: Package
 Title: Single Molecule Tracking
-Version: 0.3.7
+Version: 0.3.8
 Date: 2015-10-15
 Author: Sheng Liu
-Maintainer: Sheng Liu <lius@janelia.hhmi.org>
+Maintainer: Sheng Liu <sliu@jhu.edu>
 Description: single molecule tracking after imaging processing, it uses the outputs from image processing program, such as Diatrack, computes paramters that describes the movement of the moleclues.
 License: Artistic-2.0
 LazyData: TRUE

@@ -32,7 +32,7 @@
 ##' @import dplyr
 ##' @import reshape2
 ## @import gridExtra
-##' @importFrom reshape2 melt
+## @importFrom reshape2 melt
 ##' @importFrom scales cbreaks
 ##' @importFrom mixtools normalmixEM
 ##' @importFrom mixtools boot.se

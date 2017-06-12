@@ -35,7 +35,7 @@
 
 compareFolder=function(folders=c(folder1,folder2,...),ab.track=F,cores=1){
 
-    # TODO: the number of folder to compare can be extended using ... statement
+    # the number of folder to compare can be extended using ... statement
     # folder.list=list(folder1,folder2,folder3,folder4,folder5)
     # remove null folders by subsetting un-null folders
     #     null.folder=sapply(folder.list,is.null)
