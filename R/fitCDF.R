@@ -316,11 +316,11 @@ fitCDF=function(cdf, components=c("one","two","three"),
 
     # set seed
     result=seedIt(expr=.fitCDF(cdf=cdf, components=components,
-                       start=start,
-                       t.interval=t.interval,
-                       maxiter.search=maxiter.search,
-                       maxiter.optim=maxiter.optim,
-                       output=output),seed=seed)
+                               start=start,
+                               t.interval=t.interval,
+                               maxiter.search=maxiter.search,
+                               maxiter.optim=maxiter.optim,
+                               output=output),seed=seed)
 
     # output seed
     if (output==T){
@@ -342,8 +342,9 @@ fitCDF=function(cdf, components=c("one","two","three"),
 
 
 
+
 # ------------------------------------------------------------------------------
-#TODO:
+# DONE:
 
 # a better density plot than ggplot2 there, or adjust it to be better /professiona looking
 #   plot(density(r),main="distribution of displacement r")

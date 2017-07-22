@@ -129,8 +129,10 @@
 ##' trackll=readDiatrack(folder2,merge=F)
 ##'
 ##' ## use merge=T for per folder comparison, the analsyis result can't be plot
-##' ## back to original image. To see component tracks on original nuclei image,
-##' ## set merge=F, for per movie analysis.
+
+##' back to original image. To see component tracks on original nuclei image,
+##' set merge=F, for per movie analysis.
+
 ##'
 ##' ## compute MSD
 ##' MSD=msd(trackll=trackll,plot=T)
@@ -272,7 +274,8 @@ plotTrackFromIndex=function(index.file, movie.folder=c(folder1,folder2,...),reso
     index=as.character(index.df[,1])
 
 
-#     # TODO: the number of folder to compare can be extended using ... statement
+#     # DONE: the number of folder to compare can be extended using ... statement
+
 #     folder.list=list()
 #     for (i in 1:length(movie.folder)){
 #         folder.list[[i]]=movie.folder[i]

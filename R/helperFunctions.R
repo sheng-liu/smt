@@ -119,3 +119,61 @@ seedIt=function(expr,seed){
 }
 
 
+
+##------------------------------------------------------------------------------
+## getStartFrame
+# returns starting frame of a track/trajectory (using its name) at a given index for a track list
+
+#PARAMETERS:
+#track.list = named track list output
+#Note: Last five characters of the original file name without extension (cannot contain ".")
+#index = index of the track in the track list (track number)
+
+##'@export getStartFrame
+getStartFrame = function(track.list, index){
+    return(as.numeric(substr(names(track.list[index]),
+                             gregexpr(pattern = '\\.', names(track.list[index]))[[1]][1]+1,
+                             gregexpr(pattern = '\\.', names(track.list[index]))[[1]][2]-1)));
+}
+
+##------------------------------------------------------------------------------
+## getTrackFileName
+# returns the shortened file name of the track
+
+#PARAMETERS:
+#track.list = named track list output
+#Note: Last five characters of the original file name without extension (cannot contain ".")
+
+##'@export getTrackFileName
+getTrackFileName = function(track.list){
+    return(substr(names(track.list[1]), 1, gregexpr(pattern = '\\.', names(track.list[1]))[[1]][1]-1));
+}
+
+##------------------------------------------------------------------------------
+## abTrack
+# returns absolute corrdinates of a track (for plotting)
+
+#PARAMETERS:
+#track = track input to be transformed into absolute coordinates
+
+##'@export abTrack
+abTrack = function(track){
+    min.x = min(track$x);
+    min.y = min(track$y);
+    return(data.frame(x=track$x-min.x, y=track$y-min.y));
+}
+##------------------------------------------------------------------------------
+## removeFrameRecord
+# remove frame record for backwards compatibility
+
+#PARAMETERS:
+#track.list = track list with frame record in the fourth column
+
+##'@export removeFrameRecord
+removeFrameRecord = function(track.list){
+    for (i in 1:length(track.list)){
+        track.list[[i]] <- track.list[[i]][-c(4)];
+    }
+    return (track.list);
+}
+

@@ -443,7 +443,8 @@ rsquare.filter.roll=function(D.coef,rsquare=0.8){
 
 # to varify the fit
 # fit=lm(MSD[[1]][2:5,][,1]~x); plot(fit)
-# TODO: output goodness of fit
+
+# DONE: output goodness of fit
 
 
 ## the next two filterTrack blocks maybe combined to increase efficiency,

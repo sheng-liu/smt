@@ -11,14 +11,18 @@
 ##'
 ##' @description Read output file (tracks/trajectories in csv format) from ParticleTracker (a program of ImageJ plugin MosaicSuit).
 
-##' @usage readParticleTracker(folder,merge=F,ab.track=F,mask=F,cores=1)
+##' @usage
+##' readParticleTracker(folder, merge = F, ab.track = F, mask = F, cores = 1, frameRecord = T)
 ##'
+##' .readParticleTracker(file, interact = F, ab.track = F, frameRecord = F)
 ##'
-##' @method # this roxygen directive does not working
+## @method # this roxygen directive does not working
 ##' @param folder Full path to Diatrack output file.
 ##' @param merge An logical indicate if the output list should be merged into one. Default merge = FALSE, output list is divided by file names.
 ##' @param mask An logical indicate if image mask should be applied to screen tracks. Default False. Note the mask file should have the same name as the Diatrack output txt file with a "_MASK.tif" ending. Users can use plotMask() and plotTrackOverlay() to see the mask and its effect on screening tracks.
 ##' @param cores Number of cores used for parallel computation. This can be the cores on a workstation, or on a cluster. Tip: each core will be assigned to read in a file when paralelled.
+
+##' @param frameRecord Add a fourth column to the track list after the xyz-coordinates for the frame that coordinate point was found (especially helpful when linking frames).
 
 ##' @return
 ##' \itemize{
@@ -79,7 +83,9 @@
 ## .readParticleTracker
 ## a function to read ParticleTracker (a program of ImageJ plugin MosaicSuit) output .csv file and returns a list of tracks
 
-.readParticleTracker=function(file,interact=F,ab.track=F){
+
+.readParticleTracker=function(file,interact=F,ab.track=F, frameRecord=F){
+
 
     # interactively open window
     if (interact==T) {
@@ -121,12 +127,20 @@
 
     ##TODO, modify the macro to remove the last affix .tif in xxx.tif.csv
     # for now
-    file.subname=substr(file.name,
-                        start=nchar(file.name)-12,
-                        stop=nchar(file.name)-8)
-    #     file.subname=substr(file.name,
-    #                         start=nchar(file.name)-8,
-    #                         stop=nchar(file.name)-4)
+
+    # file.subname=substr(file.name,
+    #                     start=nchar(file.name)-12,
+    #                     stop=nchar(file.name)-8)
+    # #     file.subname=substr(file.name,
+    # #                         start=nchar(file.name)-8,
+    # #                         stop=nchar(file.name)-4)
+
+
+    if (substr(file.name, start=nchar(file.name)-7,stop=nchar(file.name)-4) == ".tif"){
+        file.subname=substr(file.name, start=nchar(file.name)-12,stop=nchar(file.name)-8)
+    } else {
+        file.subname=substr(file.name, start=nchar(file.name)-8, stop=nchar(file.name)-4)
+    }
 
     # file.id
     file.id=rep(file.subname,length(duration))
@@ -140,8 +154,14 @@
     names(track.list)=track.name
 
     # remove columns
-    subset.df=function(df){df[,c("x","y","z")]}
-    track.list=lapply(track.list,subset.df)
+
+    if (frameRecord){
+        subset.df=function(df){df[,c("x","y","z", "Frame")]}
+        track.list=lapply(track.list,subset.df)
+    } else {
+        subset.df=function(df){df[,c("x","y","z")]}
+        track.list=lapply(track.list,subset.df)
+    }
 
 
     # convert normal trackll to ab.trackll for plotting
@@ -157,16 +177,16 @@
         }
         ab.track.list=lapply(track.list,abTrack)
 
-        return(ab.track.list)
     }
 
-    return(track.list)
+    cat("\n", file.subname, "read and processed.\n")
 
     if (ab.track==T) return(ab.track.list) else return(track.list)
 
 }
 
-readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1){
+
+readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1, frameRecord=T){
 
     trackll=list()
     track.holder=c()
@@ -200,7 +220,8 @@ readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1){
 
         for (i in 1:length(file.list)){
 
-            track=.readParticleTracker(file=file.list[i],ab.track=ab.track)
+
+            track=.readParticleTracker(file=file.list[i],ab.track=ab.track, frameRecord = frameRecord)
 
             # add indexPerTrackll to track name
             indexPerTrackll=1:length(track)
@@ -225,10 +246,17 @@ readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1){
         parallel::setDefaultCluster(cl)
 
         # pass environment variables to workers
-        parallel::clusterExport(cl,varlist=c(".readParticleTracker","ab.track"),envir=environment())
+
+        # parallel::clusterExport(cl,varlist=c(".readParticleTracker","ab.track"),envir=environment())
+        #
+        # trackll=parallel::parLapply(cl,file.list,function(fname){
+        #     track=.readParticleTracker(file=fname,ab.track=ab.track)
+
+        parallel::clusterExport(cl,varlist=c(".readParticleTracker","ab.track", "frameRecord"),envir=environment())
 
         trackll=parallel::parLapply(cl,file.list,function(fname){
-            track=.readParticleTracker(file=fname,ab.track=ab.track)
+            track=.readParticleTracker(file=fname,ab.track=ab.track, frameRecord = frameRecord)
+
             # add indexPerTrackll to track name
             indexPerTrackll=1:length(track)
             names(track)=mapply(paste,names(track),indexPerTrackll,sep=".")
@@ -236,7 +264,9 @@ readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1){
         })
 
         # stop cluster
-        cat("Stop clusters...\n")
+
+        cat("\nStopping clusters...\n")
+
         parallel::stopCluster(cl)
 
         names(trackll)=file.name
@@ -281,6 +311,7 @@ readParticleTracker=function(folder,merge= F,ab.track=F,mask=F,cores=1){
 
         # trackll=track.holder
     }
+    cat("\nProcess complete.\n")
 
     return(trackll)
 }
